@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>評論語100 添削帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+/* ── 添削帳 ── 藁半紙の冷たい灰色に、墨と藍。朱は添削のためだけに使う ── */
+:root{
+  --paper:#E9EBEE; --sheet:#FCFCFD; --edge:#D4D8DF; --rule:#C7CDD6;
+  --sumi:#1A1D23; --sumi70:#4C525C; --sumi45:#79808B;
+  --ai:#26466E; --ai-soft:#E2E9F3; --ai-line:#A9BDD8;
+  --shu:#BB3A2C; --shu-soft:#F7E4E1; --shu-line:#E0A69E;
+  --shadow:0 1px 2px rgba(26,29,35,.06),0 8px 24px -12px rgba(26,29,35,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#131519; --sheet:#1D2026; --edge:#2D323B; --rule:#333944;
+    --sumi:#E8EAEE; --sumi70:#AFB5BF; --sumi45:#7D848F;
+    --ai:#93B6E0; --ai-soft:#20303F; --ai-line:#3D5876;
+    --shu:#E5796B; --shu-soft:#3A2523; --shu-line:#7A4038;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131519; --sheet:#1D2026; --edge:#2D323B; --rule:#333944;
+  --sumi:#E8EAEE; --sumi70:#AFB5BF; --sumi45:#7D848F;
+  --ai:#93B6E0; --ai-soft:#20303F; --ai-line:#3D5876;
+  --shu:#E5796B; --shu-soft:#3A2523; --shu-line:#7A4038;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--sumi);
+  font-family:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,sans-serif;
+  font-size:15px; line-height:1.7;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.mincho{font-family:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif}
+
+.wrap{max-width:700px;margin:0 auto;padding:28px 18px 72px}
+.sheet{
+  background:var(--sheet); border:1px solid var(--edge); border-radius:3px;
+  box-shadow:var(--shadow); padding:26px 24px 28px; position:relative;
+}
+.sheet::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--ai);border-radius:3px 3px 0 0}
+
+.eyebrow{
+  font-size:11px;letter-spacing:.14em;color:var(--sumi45);font-weight:500;
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.eyebrow b{font-weight:700;color:var(--ai);letter-spacing:.14em}
+.bracket{font-size:12px;letter-spacing:.1em;color:var(--sumi70);font-weight:700}
+
+h1{
+  font-family:'Shippori Mincho',serif;font-weight:800;
+  font-size:clamp(28px,7vw,40px);line-height:1.28;letter-spacing:.02em;
+  margin:12px 0 6px;text-wrap:balance;
+}
+h1 .num{color:var(--ai);font-variant-numeric:tabular-nums}
+.lede{color:var(--sumi70);font-size:14.5px;margin:0 0 4px;max-width:38em}
+
+hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
+
+/* ── 解き方の見本 ── */
+.howto{margin-top:22px;border:1px solid var(--rule);border-radius:2px;background:transparent}
+.howto-hd{font-size:11px;letter-spacing:.14em;color:var(--sumi45);padding:8px 12px;border-bottom:1px dashed var(--rule);font-weight:700}
+.steps{display:grid;gap:0;grid-template-columns:1fr;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{
+  display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start;
+  padding:11px 13px;border-bottom:1px dashed var(--rule);
+}
+.steps li:last-child{border-bottom:0}
+.steps li::before{
+  counter-increment:s;content:counter(s);
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:13px;
+  width:22px;height:22px;border:1px solid var(--ai-line);border-radius:50%;
+  color:var(--ai);display:grid;place-items:center;margin-top:2px;
+}
+.steps .st{display:block;font-size:13px;color:var(--sumi45);letter-spacing:.04em}
+.steps .sample{display:block;font-size:14px;color:var(--sumi);margin-top:3px}
+.steps .sample .k{font-family:'Shippori Mincho',serif;font-weight:700;font-size:19px;letter-spacing:.08em}
+.steps .sample .on{color:var(--ai);border-bottom:2px solid var(--ai)}
+.steps .sample .rd{border-bottom:1px solid var(--ai-line);padding:0 6px;color:var(--ai)}
+
+/* ── フォーム ── */
+.field{margin-top:22px}
+.flabel{font-size:11px;letter-spacing:.14em;color:var(--sumi45);font-weight:700;margin-bottom:9px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{
+  font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;
+  background:transparent;color:var(--sumi70);
+  border:1px solid var(--rule);border-radius:2px;padding:7px 13px;
+  transition:border-color .13s,color .13s,background .13s;
+}
+.opt:hover{border-color:var(--ai-line);color:var(--sumi)}
+.opt[aria-pressed="true"]{background:var(--ai);border-color:var(--ai);color:var(--sheet);font-weight:700}
+.opt .cnt{font-variant-numeric:tabular-nums;opacity:.72;margin-left:6px;font-size:12px}
+.opt:disabled{opacity:.42;cursor:not-allowed}
+.opt:focus-visible,.btn:focus-visible,.chip:focus-visible,.link:focus-visible,input:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:26px}
+.btn{
+  font:inherit;font-weight:700;font-size:15px;cursor:pointer;
+  background:var(--ai);color:var(--sheet);border:1px solid var(--ai);
+  border-radius:2px;padding:12px 26px;transition:opacity .13s,transform .08s;
+}
+.btn:hover{opacity:.9}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--sumi);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ai-line);opacity:1}
+.link{
+  background:none;border:0;font:inherit;font-size:13.5px;color:var(--ai);
+  cursor:pointer;padding:4px 0;border-bottom:1px solid var(--ai-line);
+}
+
+/* ── 出題画面 ── */
+.qhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.qtag{font-size:12px;letter-spacing:.1em;color:var(--sumi45);font-weight:700}
+.qtag .g{color:var(--ai)}
+.qcount{font-variant-numeric:tabular-nums;font-size:12px;color:var(--sumi45);letter-spacing:.06em}
+.bar{height:2px;background:var(--rule);margin:12px 0 0;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ai);transition:width .3s ease}
+
+.meaning{
+  font-size:clamp(17px,4.4vw,21px);line-height:1.85;font-weight:500;
+  margin:20px 0 0;text-wrap:pretty;
+}
+.meaning .lead{color:var(--sumi45);font-size:11px;letter-spacing:.16em;font-weight:700;display:block;margin-bottom:8px}
+
+.choicebox{margin-top:24px;border:1px solid var(--rule);padding:14px 12px 12px;border-radius:2px}
+.choicebox .flabel{margin-bottom:11px}
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{
+  position:relative;font-family:'Shippori Mincho',serif;font-weight:700;
+  font-size:clamp(21px,5.6vw,26px);letter-spacing:.09em;line-height:1.25;
+  background:transparent;color:var(--sumi);
+  border:1px solid var(--rule);border-radius:2px;
+  padding:10px 15px 9px;cursor:pointer;
+  transition:border-color .13s,background .13s,color .13s;
+}
+.chip:hover:not(:disabled){border-color:var(--ai-line);background:var(--ai-soft)}
+.chip[aria-pressed="true"]{border-color:var(--ai);background:var(--ai-soft);color:var(--ai)}
+.chip .kbd{
+  position:absolute;top:-7px;left:-7px;width:17px;height:17px;border-radius:50%;
+  background:var(--sheet);border:1px solid var(--rule);color:var(--sumi45);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-size:10px;font-weight:700;
+  display:grid;place-items:center;font-variant-numeric:tabular-nums;
+}
+.chip:disabled{cursor:default}
+.chip.is-right{border-color:var(--ai);color:var(--ai)}
+.chip.is-wrong{border-color:var(--shu-line);color:var(--shu);background:var(--shu-soft)}
+.chip.is-dim{opacity:.4}
+
+/* 添削の朱・藍 */
+.mark{position:absolute;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible}
+.mark path,.mark circle{fill:none;stroke-width:2.4;stroke-linecap:round;
+  stroke-dasharray:var(--len,240);stroke-dashoffset:var(--len,240);
+  animation:draw .5s cubic-bezier(.5,.1,.3,1) forwards}
+.mark .d2{animation-delay:.16s}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  .mark path,.mark circle{animation:none;stroke-dashoffset:0}
+  .btn:active{transform:none}
+}
+
+.readrow{margin-top:24px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.readrow .flabel{margin:0 0 6px}
+.readwrap{flex:1 1 240px;min-width:200px}
+input[type="text"]{
+  width:100%;font:inherit;font-size:20px;font-weight:500;letter-spacing:.08em;
+  background:transparent;color:var(--sumi);
+  border:0;border-bottom:1.5px solid var(--ai-line);border-radius:0;
+  padding:6px 4px 7px;
+}
+input[type="text"]::placeholder{color:var(--sumi45);opacity:.55;font-size:15px;letter-spacing:.06em}
+input[type="text"]:disabled{color:var(--sumi70)}
+.readjudge{font-family:'Shippori Mincho',serif;font-size:26px;font-weight:700;line-height:1;padding-bottom:6px}
+.readjudge.ok{color:var(--ai)}
+.readjudge.ng{color:var(--shu)}
+
+.verdict{margin-top:24px;border-top:1px solid var(--rule);padding-top:18px}
+.vhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.vstamp{
+  font-family:'Shippori Mincho',serif;font-weight:700;font-size:13px;letter-spacing:.1em;
+  border:1px solid currentColor;border-radius:2px;padding:3px 10px;
+}
+.vstamp.full{color:var(--ai)} .vstamp.half{color:var(--sumi70)} .vstamp.none{color:var(--shu)}
+.answer{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:12px}
+.answer .aw{font-family:'Shippori Mincho',serif;font-weight:800;font-size:clamp(28px,7vw,34px);letter-spacing:.1em}
+.answer .ar{font-size:16px;color:var(--ai);letter-spacing:.1em;font-weight:700}
+.answer .av{font-size:12.5px;color:var(--sumi45)}
+.yours{margin-top:10px;font-size:13.5px;color:var(--shu)}
+.yours s{opacity:.75}
+
+/* ── 結果 ── */
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:22px}
+.score{background:var(--sheet);padding:16px 12px;text-align:center}
+.score dt{font-size:11px;letter-spacing:.14em;color:var(--sumi45);font-weight:700}
+.score dd{margin:8px 0 0;font-family:'Shippori Mincho',serif;font-weight:800;font-size:30px;color:var(--ai);font-variant-numeric:tabular-nums;line-height:1}
+.score dd small{font-size:13px;font-weight:500;color:var(--sumi45);display:block;margin-top:6px;font-family:'Zen Kaku Gothic New',sans-serif}
+.score.k dd{color:var(--sumi)}
+
+.misslist{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--rule)}
+.misslist li{padding:13px 2px;border-bottom:1px dashed var(--rule);display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline}
+.misslist .mw{font-family:'Shippori Mincho',serif;font-weight:700;font-size:24px;letter-spacing:.08em;min-width:3.4em}
+.misslist .mr{font-size:13px;color:var(--ai);letter-spacing:.08em;font-weight:700;display:block}
+.misslist .mm{font-size:13px;color:var(--sumi70);display:block;margin-top:3px}
+.misslist .mx{font-size:12px;color:var(--shu);display:block;margin-top:4px}
+.allright{margin-top:18px;padding:16px;border:1px solid var(--ai-line);background:var(--ai-soft);color:var(--ai);font-weight:700;font-size:14px;border-radius:2px}
+
+/* ── 語一覧 ── */
+.gtitle{font-size:12px;letter-spacing:.14em;color:var(--ai);font-weight:700;margin:26px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--ai-line)}
+.wlist{list-style:none;margin:0;padding:0}
+.wlist li{display:grid;grid-template-columns:2.1em minmax(4.6em,auto) 1fr;gap:12px;align-items:baseline;padding:10px 2px;border-bottom:1px dashed var(--rule)}
+.wlist .n{font-size:13px;color:var(--sumi45);font-variant-numeric:tabular-nums}
+.wlist .w{font-family:'Shippori Mincho',serif;font-weight:700;font-size:20px;letter-spacing:.06em}
+.wlist .w em{font-style:normal;font-size:12px;color:var(--sumi45);font-family:'Zen Kaku Gothic New',sans-serif;letter-spacing:0;display:block;margin-top:1px}
+.wlist .r{font-size:12.5px;color:var(--ai);letter-spacing:.08em;font-weight:700;display:block}
+.wlist .m{font-size:13.5px;color:var(--sumi70)}
+
+.foot{margin-top:26px;font-size:11.5px;color:var(--sumi45);line-height:1.75}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══ ホーム ═══ -->
+<main id="home" class="sheet">
+  <div class="eyebrow"><span>『読み解くための現代文単語［改訂版］』</span></div>
+  <div class="eyebrow" style="margin-top:6px"><b>第一章　評論語</b><span>基本用語編</span></div>
+  <h1>覚えておきたい<br>重要語<span class="num">100</span> 添削帳</h1>
+  <p class="lede">意味を読んで、横に並んだ漢字から正しいものを選び、さらに読み仮名を書く。解答表の <span class="mincho">問1・問2・問3</span>、あわせて <b>50 語</b>を収録。</p>
+
+  <div class="howto">
+    <div class="howto-hd">解き方</div>
+    <ol class="steps">
+      <li><span><span class="st">意味を読む</span><span class="sample">幼稚でつたないこと。へたなこと。</span></span></li>
+      <li><span><span class="st">選択肢から漢字を選ぶ</span><span class="sample k">倒錯　<span class="on">稚拙</span>　齟齬　敷衍</span></span></li>
+      <li><span><span class="st">読み仮名を書く</span><span class="sample"><span class="rd">ちせつ</span></span></span></li>
+    </ol>
+  </div>
+
+  <div class="field">
+    <div class="flabel">出題範囲</div>
+    <div class="opts" id="rangeOpts"></div>
+  </div>
+
+  <div class="field">
+    <div class="flabel">選択肢の数</div>
+    <div class="opts" id="countOpts"></div>
+  </div>
+
+  <div class="field">
+    <div class="flabel">出題順</div>
+    <div class="opts" id="orderOpts"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="startBtn">はじめる</button>
+    <button class="link" id="toList">語一覧を見る</button>
+  </div>
+
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。</p>
+</main>
+
+<!-- ═══ 出題 ═══ -->
+<main id="quiz" class="sheet" hidden>
+  <div class="qhead">
+    <div class="qtag"><span class="g" id="qGroup">問1</span> <span id="qNo">①</span></div>
+    <div class="qcount"><span id="qPos">1</span> / <span id="qTotal">20</span></div>
+  </div>
+  <div class="bar"><i id="qBar" style="width:0%"></i></div>
+
+  <p class="meaning"><span class="lead">【意味】</span><span id="qMeaning"></span></p>
+
+  <div class="choicebox">
+    <div class="flabel">【選択肢】</div>
+    <div class="chips" id="qChips"></div>
+  </div>
+
+  <div class="readrow" id="readRow">
+    <div class="readwrap">
+      <div class="flabel">【読み】ひらがなで</div>
+      <input type="text" id="qRead" placeholder="よみがなを入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="readjudge" id="readJudge"></div>
+  </div>
+
+  <div class="verdict" id="verdict" hidden>
+    <div class="vhead"><span class="vstamp" id="vStamp"></span><span class="qcount" id="vNote"></span></div>
+    <div class="answer">
+      <span class="aw mincho" id="vWord"></span>
+      <span class="ar" id="vRead"></span>
+      <span class="av" id="vAlt"></span>
+    </div>
+    <div class="yours" id="vYours" hidden></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="gradeBtn" disabled>答え合わせ</button>
+    <button class="btn" id="nextBtn" hidden>次へ</button>
+    <button class="link" id="quitBtn">やめる</button>
+  </div>
+</main>
+
+<!-- ═══ 結果 ═══ -->
+<main id="result" class="sheet" hidden>
+  <div class="eyebrow"><b>採点</b><span id="rRange"></span></div>
+  <h1 id="rTitle">結果</h1>
+  <dl class="scores">
+    <div class="score k"><dt>漢字</dt><dd id="sK">0<small id="sKs">0/0</small></dd></div>
+    <div class="score k"><dt>読み</dt><dd id="sR">0<small id="sRs">0/0</small></dd></div>
+    <div class="score"><dt>完答</dt><dd id="sF">0<small id="sFs">0/0</small></dd></div>
+  </dl>
+  <div id="rMissWrap">
+    <div class="gtitle" id="rMissHd">直しておく語</div>
+    <ul class="misslist" id="rMiss"></ul>
+  </div>
+  <div class="allright" id="rPerfect" hidden>全問、漢字も読みも正解。この範囲は仕上がりです。</div>
+  <div class="actions">
+    <button class="btn" id="retryWrong" hidden>間違いだけもう一度</button>
+    <button class="btn ghost" id="retryAll">同じ範囲をもう一度</button>
+    <button class="link" id="toHome2">はじめに戻る</button>
+  </div>
+</main>
+
+<!-- ═══ 語一覧 ═══ -->
+<main id="list" class="sheet" hidden>
+  <div class="eyebrow"><b>語一覧</b><span>問1〜問3・全50語</span></div>
+  <h1>単語帳</h1>
+  <p class="lede">解答表の順に並べています。かっこ内は書き換えの効く表記。</p>
+  <div id="listBody"></div>
+  <div class="actions"><button class="btn ghost" id="toHome3">はじめに戻る</button></div>
+</main>
+
+</div>
+
+<script>
+/* ══ 解答表（第一章 評論語／基本用語編 ④覚えておきたい重要語100・問1〜問3）══ */
+var DATA=[
+ {g:1,n:1,w:'枯渇',alt:'涸渇',r:'こかつ',m:'水がかれるように、尽きてなくなること。'},
+ {g:1,n:2,w:'肥大',r:'ひだい',m:'ふくれて、必要以上に大きくなること。'},
+ {g:1,n:3,w:'脆弱',r:'ぜいじゃく',m:'もろくて弱いこと。'},
+ {g:1,n:4,w:'喚起',r:'かんき',m:'注意や感情などを、呼び起こすこと。'},
+ {g:1,n:5,w:'錯綜',r:'さくそう',m:'いくつもの物事が複雑に入りまじること。'},
+ {g:1,n:6,w:'蔓延',r:'まんえん',m:'よくないものが、はびこり広がること。'},
+ {g:1,n:7,w:'逡巡',r:'しゅんじゅん',m:'ぐずぐずとためらって、決断できないこと。'},
+ {g:1,n:8,w:'些事',alt:'瑣事',r:'さじ',m:'取るに足りない、ちょっとした用事や出来事。'},
+ {g:1,n:9,w:'卑小',r:'ひしょう',m:'いやしく小さくて、価値のないこと。'},
+ {g:1,n:10,w:'乖離',r:'かいり',m:'本来結びつくべきものが、そむき離れること。'},
+ {g:1,n:11,w:'不可逆',r:'ふかぎゃく',m:'変化が一方向にしか進まず、もとの状態に戻れないこと。'},
+ {g:1,n:12,w:'派生',r:'はせい',m:'もとになるものから分かれて生じること。'},
+ {g:1,n:13,w:'終焉',r:'しゅうえん',m:'命や物事が終わりを迎えること。最期。'},
+ {g:1,n:14,w:'堪能',r:'たんのう',m:'十分に満足すること。また、その道に深く通じていること。'},
+ {g:1,n:15,w:'些末',alt:'瑣末',r:'さまつ',m:'主要でなく、こまごまとしてつまらないさま。枝葉末節。'},
+ {g:1,n:16,w:'収斂',r:'しゅうれん',m:'ちぢまること。ばらばらのものが一つにまとまること。'},
+ {g:1,n:17,w:'潤沢',r:'じゅんたく',m:'物が豊富にあること。うるおいがあること。'},
+ {g:1,n:18,w:'輩出',r:'はいしゅつ',m:'すぐれた人物が、次々と世に出ること。'},
+ {g:1,n:19,w:'遡及',r:'そきゅう',m:'過去にさかのぼって、効力が及ぶこと。'},
+ {g:1,n:20,w:'横溢',r:'おういつ',m:'気力などが、あふれるほどに満ちていること。'},
+
+ {g:2,n:1,w:'凌駕',r:'りょうが',m:'他をしのいで、その上に出ること。'},
+ {g:2,n:2,w:'喝破',r:'かっぱ',m:'誤った説をしりぞけ、真実をずばりと説き明かすこと。'},
+ {g:2,n:3,w:'軋轢',r:'あつれき',m:'仲が悪くなること。人と人との間のいさかい。'},
+ {g:2,n:4,w:'敷衍',r:'ふえん',m:'意味をおし広げて、詳しく説明すること。'},
+ {g:2,n:5,w:'逸脱',r:'いつだつ',m:'本筋や決まりから外れること。'},
+ {g:2,n:6,w:'稚拙',r:'ちせつ',m:'幼稚でつたないこと。へたなこと。'},
+ {g:2,n:7,w:'自明',r:'じめい',m:'証明や説明をするまでもなく、明らかであること。'},
+ {g:2,n:8,w:'依拠',r:'いきょ',m:'あるものを、よりどころとすること。'},
+ {g:2,n:9,w:'相克',alt:'相剋',r:'そうこく',m:'対立する二つのものが、互いに勝とうとして争うこと。'},
+ {g:2,n:10,w:'差異',r:'さい',m:'他のものとの違い。'},
+ {g:2,n:11,w:'齟齬',r:'そご',m:'物事が食い違って、うまくかみ合わないこと。'},
+ {g:2,n:12,w:'超克',r:'ちょうこく',m:'困難や限界を乗りこえて、克服すること。'},
+ {g:2,n:13,w:'強靱',alt:'強靭',r:'きょうじん',m:'しなやかで、粘り強いこと。'},
+ {g:2,n:14,w:'倒錯',r:'とうさく',m:'本来のあり方と、さかさまになること。'},
+ {g:2,n:15,w:'アンビバレンス',r:null,m:'同じ対象に、愛と憎しみのような相反する感情を同時に抱くこと。両価性。'},
+ {g:2,n:16,w:'媒介',r:'ばいかい',m:'二つのものの間に立って、仲立ちをすること。'},
+ {g:2,n:17,w:'洗練',r:'せんれん',m:'みがきをかけて、上品であかぬけたものにすること。'},
+ {g:2,n:18,w:'標榜',r:'ひょうぼう',m:'主義や主張を、はっきりと掲げて示すこと。'},
+ {g:2,n:19,w:'表象',r:'ひょうしょう',m:'心に思い浮かべられた像。あるものを指し示すしるし。'},
+ {g:2,n:20,w:'晦渋',r:'かいじゅう',m:'言い回しが難しく、意味がわかりにくいこと。'},
+
+ {g:3,n:1,w:'頑迷',r:'がんめい',m:'かたくなで、道理がわからないこと。'},
+ {g:3,n:2,w:'陥穽',r:'かんせい',m:'落とし穴。人をおとしいれるための計略。'},
+ {g:3,n:3,w:'鼓舞',r:'こぶ',m:'気持ちを奮い立たせ、励ますこと。'},
+ {g:3,n:4,w:'神髄',alt:'真髄',r:'しんずい',m:'その物事の、最も奥深く肝心な本質。'},
+ {g:3,n:5,w:'甘受',r:'かんじゅ',m:'やむを得ないものとして、あまんじて受け入れること。'},
+ {g:3,n:6,w:'大道',r:'だいどう',m:'人として踏み行うべき、正しい道。'},
+ {g:3,n:7,w:'節操',r:'せっそう',m:'信念や主義を固く守って、変えないこと。'},
+ {g:3,n:8,w:'能事',r:'のうじ',m:'なすべき事柄。果たすべきつとめ。'},
+ {g:3,n:9,w:'扇情',alt:'煽情',r:'せんじょう',m:'感情や欲情を、あおりたてること。'},
+ {g:3,n:10,w:'憐憫',alt:'憐愍',r:'れんびん',m:'かわいそうだと思うこと。あわれみ。'}
+];
+var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
+var GNAME={1:'問1',2:'問2',3:'問3'};
+var KEY='gendaibun-hyoronngo-100.v1';
+
+/* ── 保存 ── */
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+var store=load();
+if(!store.wrong)store.wrong={};
+if(!store.cfg)store.cfg={range:'all',count:6,order:'shuffle'};
+
+/* ── 読みの正規化 ── */
+function norm(s){
+  if(!s)return '';
+  s=s.replace(/[\s　]/g,'').trim();
+  s=s.replace(/[ァ-ヶ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x60)});
+  return s.replace(/[・･ー\-]/g,'');
+}
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function wrongList(){return DATA.filter(function(d){return store.wrong[d.w]>0})}
+
+/* ── 設定UI ── */
+var RANGES=[{v:'1',l:'問1'},{v:'2',l:'問2'},{v:'3',l:'問3'},{v:'all',l:'全部'},{v:'wrong',l:'苦手'}];
+function rangeItems(v){
+  if(v==='all')return DATA.slice();
+  if(v==='wrong')return wrongList();
+  return DATA.filter(function(d){return d.g===+v});
+}
+function rangeLabel(v){
+  var r=RANGES.filter(function(x){return x.v===v})[0];
+  return r?r.l:v;
+}
+function paintOpts(){
+  $('rangeOpts').innerHTML=RANGES.map(function(r){
+    var n=rangeItems(r.v).length;
+    var dis=(r.v==='wrong'&&n===0)?' disabled':'';
+    return '<button class="opt" data-k="range" data-v="'+r.v+'" aria-pressed="'+(store.cfg.range===r.v)+'"'+dis+'>'+r.l+'<span class="cnt">'+n+'</span></button>';
+  }).join('');
+  $('countOpts').innerHTML=[4,6,8].map(function(c){
+    return '<button class="opt" data-k="count" data-v="'+c+'" aria-pressed="'+(store.cfg.count===c)+'">'+c+'択</button>';
+  }).join('');
+  $('orderOpts').innerHTML=[{v:'shuffle',l:'シャッフル'},{v:'seq',l:'番号順'}].map(function(o){
+    return '<button class="opt" data-k="order" data-v="'+o.v+'" aria-pressed="'+(store.cfg.order===o.v)+'">'+o.l+'</button>';
+  }).join('');
+  var n=rangeItems(store.cfg.range).length;
+  $('startBtn').disabled=n===0;
+  $('startBtn').textContent=n?('はじめる（'+n+'問）'):'出題できる語がありません';
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('.opt');
+  if(!b||b.disabled)return;
+  var k=b.dataset.k;
+  store.cfg[k]=(k==='count')?+b.dataset.v:b.dataset.v;
+  save(store); paintOpts();
+});
+
+/* ── 画面切替 ── */
+function show(id){
+  ['home','quiz','result','list'].forEach(function(s){$(s).hidden=(s!==id)});
+  window.scrollTo(0,0);
+}
+
+/* ── 出題 ── */
+var S={deck:[],i:0,sel:null,graded:false,res:[],range:'all'};
+
+function buildDeck(items){
+  var deck=items.map(function(d){
+    var pool=DATA.filter(function(x){return x.w!==d.w&&(items.length<8?true:x.g===d.g)});
+    if(pool.length<store.cfg.count-1)pool=DATA.filter(function(x){return x.w!==d.w});
+    var others=shuffle(pool.slice()).slice(0,store.cfg.count-1);
+    return {d:d,choices:shuffle(others.concat([d]).map(function(x){return x.w}))};
+  });
+  return store.cfg.order==='shuffle'?shuffle(deck):deck;
+}
+function start(items,range){
+  S.deck=buildDeck(items); S.i=0; S.res=[]; S.range=range;
+  show('quiz'); renderQ();
+}
+function markSVG(ok){
+  if(ok)return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="43" stroke="var(--ai)" style="--len:280" vector-effect="non-scaling-stroke"/></svg>';
+  return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M14 14 L86 86" stroke="var(--shu)" style="--len:120" vector-effect="non-scaling-stroke"/><path class="d2" d="M86 14 L14 86" stroke="var(--shu)" style="--len:120" vector-effect="non-scaling-stroke"/></svg>';
+}
+function renderQ(){
+  var q=S.deck[S.i], d=q.d;
+  S.sel=null; S.graded=false;
+  $('qGroup').textContent=GNAME[d.g];
+  $('qNo').textContent=MARU[d.n-1]||('('+d.n+')');
+  $('qPos').textContent=S.i+1;
+  $('qTotal').textContent=S.deck.length;
+  $('qBar').style.width=(S.i/S.deck.length*100)+'%';
+  $('qMeaning').textContent=d.m;
+  $('qChips').innerHTML=q.choices.map(function(w,i){
+    return '<button class="chip" data-w="'+esc(w)+'" aria-pressed="false"><span class="kbd">'+(i+1)+'</span>'+esc(w)+'</button>';
+  }).join('');
+  var noRead=(d.r===null);
+  $('readRow').hidden=noRead;
+  $('qRead').value=''; $('qRead').disabled=false;
+  $('readJudge').textContent=''; $('readJudge').className='readjudge';
+  $('verdict').hidden=true; $('vYours').hidden=true;
+  $('gradeBtn').hidden=false; $('gradeBtn').disabled=true;
+  $('nextBtn').hidden=true;
+  $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
+}
+$('qChips').addEventListener('click',function(e){
+  var c=e.target.closest('.chip'); if(!c||S.graded)return;
+  S.sel=c.dataset.w;
+  [].forEach.call(this.querySelectorAll('.chip'),function(x){x.setAttribute('aria-pressed',String(x===c))});
+  $('gradeBtn').disabled=false;
+  if(!$('readRow').hidden)$('qRead').focus();
+});
+function grade(){
+  if(S.graded||!S.sel)return;
+  S.graded=true;
+  var q=S.deck[S.i], d=q.d;
+  var kOK=S.sel===d.w;
+  var typed=$('qRead').value;
+  var rOK=(d.r===null)?null:(norm(typed)===norm(d.r));
+
+  [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
+    c.disabled=true;
+    var w=c.dataset.w;
+    if(w===d.w){c.classList.add('is-right');c.insertAdjacentHTML('beforeend',markSVG(true))}
+    else if(w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
+    else c.classList.add('is-dim');
+  });
+  $('qRead').disabled=true;
+  if(rOK!==null){
+    $('readJudge').textContent=rOK?'○':'×';
+    $('readJudge').className='readjudge '+(rOK?'ok':'ng');
+  }
+  var full=kOK&&(rOK!==false);
+  $('vStamp').textContent=full?'完答':(kOK||rOK?'半解':'要復習');
+  $('vStamp').className='vstamp '+(full?'full':(kOK||rOK?'half':'none'));
+  $('vNote').textContent=(d.r===null)?'カタカナ語のため読みなし':(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
+  $('vWord').textContent=d.w;
+  $('vRead').textContent=d.r||'';
+  $('vAlt').textContent=d.alt?('［'+d.alt+'］とも書く'):'';
+  if(!full){
+    var bits=[];
+    if(!kOK)bits.push('選んだ漢字：<s>'+esc(S.sel)+'</s>');
+    if(rOK===false)bits.push('書いた読み：<s>'+(typed?esc(typed):'（未記入）')+'</s>');
+    $('vYours').innerHTML=bits.join('　／　');
+    $('vYours').hidden=false;
+  }
+  $('verdict').hidden=false;
+  $('gradeBtn').hidden=true;
+  $('nextBtn').hidden=false; $('nextBtn').focus();
+
+  S.res.push({d:d,kOK:kOK,rOK:rOK,sel:S.sel,typed:typed});
+  if(!full){store.wrong[d.w]=(store.wrong[d.w]||0)+1}
+  else if(store.wrong[d.w]){store.wrong[d.w]--;if(store.wrong[d.w]<=0)delete store.wrong[d.w]}
+  save(store);
+  $('qBar').style.width=((S.i+1)/S.deck.length*100)+'%';
+}
+function next(){
+  if(S.i<S.deck.length-1){S.i++;renderQ()}else showResult();
+}
+$('gradeBtn').addEventListener('click',grade);
+$('nextBtn').addEventListener('click',next);
+$('qRead').addEventListener('keydown',function(e){
+  if(e.key!=='Enter'||e.isComposing)return;
+  e.preventDefault();
+  if(S.graded)next();else if(S.sel)grade();
+});
+document.addEventListener('keydown',function(e){
+  if($('quiz').hidden)return;
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade());return}
+  if(!S.graded&&/^[1-8]$/.test(e.key)){
+    var c=$('qChips').querySelectorAll('.chip')[+e.key-1];
+    if(c)c.click();
+  }
+});
+$('quitBtn').addEventListener('click',function(){if(S.res.length)showResult();else{paintOpts();show('home')}});
+
+/* ── 結果 ── */
+function pct(a,b){return b?Math.round(a/b*100):0}
+function showResult(){
+  var n=S.res.length;
+  var kn=S.res.filter(function(r){return r.kOK}).length;
+  var rTot=S.res.filter(function(r){return r.rOK!==null});
+  var rn=rTot.filter(function(r){return r.rOK}).length;
+  var fn=S.res.filter(function(r){return r.kOK&&r.rOK!==false}).length;
+  $('rRange').textContent=rangeLabel(S.range)+'・'+n+'問';
+  $('rTitle').textContent=fn===n?'全問完答':(pct(fn,n)+'点の答案');
+  $('sK').innerHTML=pct(kn,n)+'<small>'+kn+' / '+n+'</small>';
+  $('sR').innerHTML=pct(rn,rTot.length)+'<small>'+rn+' / '+rTot.length+'</small>';
+  $('sF').innerHTML=pct(fn,n)+'<small>'+fn+' / '+n+'</small>';
+  var miss=S.res.filter(function(r){return !(r.kOK&&r.rOK!==false)});
+  $('rPerfect').hidden=miss.length>0;
+  $('rMissWrap').hidden=miss.length===0;
+  $('rMissHd').textContent='直しておく語（'+miss.length+'）';
+  $('rMiss').innerHTML=miss.map(function(r){
+    var bits=[];
+    if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
+    if(r.rOK===false)bits.push('書いた読み '+(r.typed?esc(r.typed):'未記入'));
+    return '<li><span class="mw">'+esc(r.d.w)+'</span><span><span class="mr">'+esc(r.d.r||'—')+'</span>'
+      +'<span class="mm">'+esc(r.d.m)+'</span>'
+      +(bits.length?'<span class="mx">'+bits.join('　／　')+'</span>':'')+'</span></li>';
+  }).join('');
+  $('retryWrong').hidden=miss.length===0;
+  S.missItems=miss.map(function(r){return r.d});
+  show('result');
+}
+$('retryWrong').addEventListener('click',function(){start(S.missItems,'直し')});
+$('retryAll').addEventListener('click',function(){start(rangeItems(S.range==='直し'?store.cfg.range:S.range),S.range)});
+$('toHome2').addEventListener('click',function(){paintOpts();show('home')});
+$('startBtn').addEventListener('click',function(){start(rangeItems(store.cfg.range),store.cfg.range)});
+
+/* ── 語一覧 ── */
+function paintList(){
+  $('listBody').innerHTML=[1,2,3].map(function(g){
+    var items=DATA.filter(function(d){return d.g===g});
+    return '<div class="gtitle">'+GNAME[g]+'（'+items.length+'語）</div><ul class="wlist">'+items.map(function(d){
+      return '<li><span class="n">'+(MARU[d.n-1]||d.n)+'</span>'
+        +'<span class="w">'+esc(d.w)+(d.alt?'<em>（'+esc(d.alt)+'）</em>':'')+'</span>'
+        +'<span><span class="r">'+esc(d.r||'カタカナ語')+'</span><span class="m">'+esc(d.m)+'</span></span></li>';
+    }).join('')+'</ul>';
+  }).join('');
+}
+$('toList').addEventListener('click',function(){paintList();show('list')});
+$('toHome3').addEventListener('click',function(){paintOpts();show('home')});
+
+paintOpts();
+</script>
+</body>
+</html>
