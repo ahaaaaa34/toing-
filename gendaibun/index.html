@@ -135,28 +135,22 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
 .meaning .lead{color:var(--sumi45);font-size:11px;letter-spacing:.16em;font-weight:700;display:block;margin-bottom:8px}
 
 .choicebox{margin-top:24px;border:1px solid var(--rule);padding:14px 12px 12px;border-radius:2px}
-.choicebox .flabel{margin-bottom:11px}
-.chips{display:flex;flex-wrap:wrap;gap:9px}
+.choicebox .flabel{margin-bottom:11px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.choicebox .flabel .src{color:var(--sumi70);font-weight:500;letter-spacing:.06em}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{
   position:relative;font-family:'Shippori Mincho',serif;font-weight:700;
-  font-size:clamp(21px,5.6vw,26px);letter-spacing:.09em;line-height:1.25;
+  font-size:clamp(18px,4.6vw,22px);letter-spacing:.07em;line-height:1.3;
   background:transparent;color:var(--sumi);
   border:1px solid var(--rule);border-radius:2px;
-  padding:10px 15px 9px;cursor:pointer;
+  padding:8px 12px 7px;cursor:pointer;
   transition:border-color .13s,background .13s,color .13s;
 }
 .chip:hover:not(:disabled){border-color:var(--ai-line);background:var(--ai-soft)}
 .chip[aria-pressed="true"]{border-color:var(--ai);background:var(--ai-soft);color:var(--ai)}
-.chip .kbd{
-  position:absolute;top:-7px;left:-7px;width:17px;height:17px;border-radius:50%;
-  background:var(--sheet);border:1px solid var(--rule);color:var(--sumi45);
-  font-family:'Zen Kaku Gothic New',sans-serif;font-size:10px;font-weight:700;
-  display:grid;place-items:center;font-variant-numeric:tabular-nums;
-}
 .chip:disabled{cursor:default}
 .chip.is-right{border-color:var(--ai);color:var(--ai)}
 .chip.is-wrong{border-color:var(--shu-line);color:var(--shu);background:var(--shu-soft)}
-.chip.is-dim{opacity:.4}
 
 /* 添削の朱・藍 */
 .mark{position:absolute;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible}
@@ -237,13 +231,13 @@ input[type="text"]:disabled{color:var(--sumi70)}
   <div class="eyebrow"><span>『読み解くための現代文単語［改訂版］』</span></div>
   <div class="eyebrow" style="margin-top:6px"><b>第一章　評論語</b><span>基本用語編</span></div>
   <h1>覚えておきたい<br>重要語<span class="num">100</span> 添削帳</h1>
-  <p class="lede">意味を読んで、横に並んだ漢字から正しいものを選び、さらに読み仮名を書く。解答表の <span class="mincho">問1・問2・問3</span>、あわせて <b>50 語</b>を収録。</p>
+  <p class="lede">意味を読んで、ずらりと並んだ語群から正しい漢字を選び、さらに読み仮名を書く。1問ずつその場で採点。解答表の <span class="mincho">問1・問2・問3</span>、あわせて <b>50 語</b>を収録。</p>
 
   <div class="howto">
     <div class="howto-hd">解き方</div>
     <ol class="steps">
       <li><span><span class="st">意味を読む</span><span class="sample">幼稚でつたないこと。へたなこと。</span></span></li>
-      <li><span><span class="st">選択肢から漢字を選ぶ</span><span class="sample k">倒錯　<span class="on">稚拙</span>　齟齬　敷衍</span></span></li>
+      <li><span><span class="st">語群から漢字を選ぶ（語群はずっと出たまま）</span><span class="sample k">凌駕　喝破　軋轢　敷衍　逸脱　<span class="on">稚拙</span>　自明　…</span></span></li>
       <li><span><span class="st">読み仮名を書く</span><span class="sample"><span class="rd">ちせつ</span></span></span></li>
     </ol>
   </div>
@@ -251,11 +245,6 @@ input[type="text"]:disabled{color:var(--sumi70)}
   <div class="field">
     <div class="flabel">出題範囲</div>
     <div class="opts" id="rangeOpts"></div>
-  </div>
-
-  <div class="field">
-    <div class="flabel">選択肢の数</div>
-    <div class="opts" id="countOpts"></div>
   </div>
 
   <div class="field">
@@ -282,7 +271,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
   <p class="meaning"><span class="lead">【意味】</span><span id="qMeaning"></span></p>
 
   <div class="choicebox">
-    <div class="flabel">【選択肢】</div>
+    <div class="flabel">【語群】<span class="src" id="bankLabel"></span></div>
     <div class="chips" id="qChips"></div>
   </div>
 
@@ -408,7 +397,7 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){re
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
 var store=load();
 if(!store.wrong)store.wrong={};
-if(!store.cfg)store.cfg={range:'all',count:6,order:'shuffle'};
+if(!store.cfg)store.cfg={range:'all',order:'shuffle'};
 
 /* ── 読みの正規化 ── */
 function norm(s){
@@ -439,9 +428,6 @@ function paintOpts(){
     var dis=(r.v==='wrong'&&n===0)?' disabled':'';
     return '<button class="opt" data-k="range" data-v="'+r.v+'" aria-pressed="'+(store.cfg.range===r.v)+'"'+dis+'>'+r.l+'<span class="cnt">'+n+'</span></button>';
   }).join('');
-  $('countOpts').innerHTML=[4,6,8].map(function(c){
-    return '<button class="opt" data-k="count" data-v="'+c+'" aria-pressed="'+(store.cfg.count===c)+'">'+c+'択</button>';
-  }).join('');
   $('orderOpts').innerHTML=[{v:'shuffle',l:'シャッフル'},{v:'seq',l:'番号順'}].map(function(o){
     return '<button class="opt" data-k="order" data-v="'+o.v+'" aria-pressed="'+(store.cfg.order===o.v)+'">'+o.l+'</button>';
   }).join('');
@@ -453,7 +439,7 @@ document.addEventListener('click',function(e){
   var b=e.target.closest('.opt');
   if(!b||b.disabled)return;
   var k=b.dataset.k;
-  store.cfg[k]=(k==='count')?+b.dataset.v:b.dataset.v;
+  store.cfg[k]=b.dataset.v;
   save(store); paintOpts();
 });
 
@@ -464,20 +450,24 @@ function show(id){
 }
 
 /* ── 出題 ── */
-var S={deck:[],i:0,sel:null,graded:false,res:[],range:'all'};
+var S={deck:[],bank:[],i:0,sel:null,graded:false,res:[],range:'all'};
 
-function buildDeck(items){
-  var deck=items.map(function(d){
-    var pool=DATA.filter(function(x){return x.w!==d.w&&(items.length<8?true:x.g===d.g)});
-    if(pool.length<store.cfg.count-1)pool=DATA.filter(function(x){return x.w!==d.w});
-    var others=shuffle(pool.slice()).slice(0,store.cfg.count-1);
-    return {d:d,choices:shuffle(others.concat([d]).map(function(x){return x.w}))};
-  });
-  return store.cfg.order==='shuffle'?shuffle(deck):deck;
+/* 語群＝出題する語が属する問の全語。解答表の並び順のまま、最後まで出しっぱなし */
+function bankGroups(items){var gs={};items.forEach(function(d){gs[d.g]=1});return gs}
+function buildBank(items){var gs=bankGroups(items);return DATA.filter(function(d){return gs[d.g]})}
+function renderBank(items){
+  S.bank=buildBank(items);
+  var names=Object.keys(bankGroups(items)).sort().map(function(g){return GNAME[g]});
+  $('bankLabel').textContent=names.join('・')+'の'+S.bank.length+'語から選ぶ';
+  $('qChips').innerHTML=S.bank.map(function(d){
+    return '<button class="chip" data-w="'+esc(d.w)+'" aria-pressed="false">'+esc(d.w)+'</button>';
+  }).join('');
 }
 function start(items,range){
-  S.deck=buildDeck(items); S.i=0; S.res=[]; S.range=range;
-  show('quiz'); renderQ();
+  var ordered=store.cfg.order==='shuffle'?shuffle(items.slice()):items.slice();
+  S.deck=ordered.map(function(d){return {d:d}});
+  S.i=0; S.res=[]; S.range=range;
+  show('quiz'); renderBank(items); renderQ();
 }
 function markSVG(ok){
   if(ok)return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="43" stroke="var(--ai)" style="--len:280" vector-effect="non-scaling-stroke"/></svg>';
@@ -492,9 +482,10 @@ function renderQ(){
   $('qTotal').textContent=S.deck.length;
   $('qBar').style.width=(S.i/S.deck.length*100)+'%';
   $('qMeaning').textContent=d.m;
-  $('qChips').innerHTML=q.choices.map(function(w,i){
-    return '<button class="chip" data-w="'+esc(w)+'" aria-pressed="false"><span class="kbd">'+(i+1)+'</span>'+esc(w)+'</button>';
-  }).join('');
+  [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
+    c.className='chip'; c.disabled=false; c.setAttribute('aria-pressed','false');
+    var m=c.querySelector('.mark'); if(m)m.remove();
+  });
   var noRead=(d.r===null);
   $('readRow').hidden=noRead;
   $('qRead').value=''; $('qRead').disabled=false;
@@ -524,7 +515,6 @@ function grade(){
     var w=c.dataset.w;
     if(w===d.w){c.classList.add('is-right');c.insertAdjacentHTML('beforeend',markSVG(true))}
     else if(w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
-    else c.classList.add('is-dim');
   });
   $('qRead').disabled=true;
   if(rOK!==null){
@@ -568,11 +558,7 @@ $('qRead').addEventListener('keydown',function(e){
 document.addEventListener('keydown',function(e){
   if($('quiz').hidden)return;
   if(e.target.tagName==='INPUT')return;
-  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade());return}
-  if(!S.graded&&/^[1-8]$/.test(e.key)){
-    var c=$('qChips').querySelectorAll('.chip')[+e.key-1];
-    if(c)c.click();
-  }
+  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade())}
 });
 $('quitBtn').addEventListener('click',function(){if(S.res.length)showResult();else{paintOpts();show('home')}});
 
