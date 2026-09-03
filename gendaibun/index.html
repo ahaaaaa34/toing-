@@ -83,6 +83,11 @@ body.quizzing .wrap{height:100dvh;padding:14px 16px 16px;display:flex}
 }
 .eyebrow b{font-weight:700;color:var(--ai);letter-spacing:.14em}
 .bracket{font-size:12px;letter-spacing:.1em;color:var(--sumi70);font-weight:700}
+.ver{
+  margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.1em;
+  color:var(--ai);background:var(--ai-soft);border:1px solid var(--ai-line);
+  border-radius:2px;padding:2px 8px;font-variant-numeric:tabular-nums;
+}
 
 h1{
   font-family:'Shippori Mincho',serif;font-weight:800;
@@ -256,7 +261,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
 
 <!-- ═══ ホーム ═══ -->
 <main id="home" class="sheet">
-  <div class="eyebrow"><span>『読み解くための現代文単語［改訂版］』</span></div>
+  <div class="eyebrow"><span>『読み解くための現代文単語［改訂版］』</span><span class="ver" id="ver"></span></div>
   <div class="eyebrow" style="margin-top:6px"><b>第一章　評論語</b><span>基本用語編</span></div>
   <h1>覚えておきたい<br>重要語<span class="num">100</span> 添削帳</h1>
   <p class="lede">意味を読んで、ずらりと並んだ語群から正しい漢字を選び、さらに読み仮名を書く。1問ずつその場で採点。語釈は本文の語義欄そのまま。解答表の <span class="mincho">問1・問2・問3</span>、あわせて <b>50 語</b>を収録。</p>
@@ -425,6 +430,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
+var VER='v2';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -658,6 +664,7 @@ function paintList(){
 $('toList').addEventListener('click',function(){paintList();show('list')});
 $('toHome3').addEventListener('click',function(){paintOpts();show('home')});
 
+$('ver').textContent=VER;
 paintOpts();
 </script>
 </body>
