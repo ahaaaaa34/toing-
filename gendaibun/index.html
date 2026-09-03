@@ -43,17 +43,18 @@ body{
 }
 .mincho{font-family:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif}
 
-html,body{height:100%}
-body{height:100dvh;overflow:hidden}
-.wrap{height:100%;max-width:1180px;margin:0 auto;padding:14px 16px 16px;display:flex}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 40px}
 .sheet{
   background:var(--sheet); border:1px solid var(--edge); border-radius:3px;
-  box-shadow:var(--shadow); padding:24px 24px 26px; position:relative;
-  flex:1; min-height:0; display:flex; flex-direction:column;
+  box-shadow:var(--shadow); padding:24px 24px 28px; position:relative;
 }
-/* 読み物の3画面は内側でスクロール、出題画面はスクロールさせない */
-#home,#result,#list{overflow-y:auto;width:100%;max-width:760px;margin:0 auto}
-#quiz{overflow:hidden;padding:20px 22px 20px}
+/* ホーム・結果・語一覧は普通に流れて、ページごとスクロールする */
+#home,#result,#list{max-width:760px;margin:0 auto}
+
+/* 出題中だけ、1問が画面に収まるよう高さを固定する */
+body.quizzing{overflow:hidden}
+body.quizzing .wrap{height:100dvh;padding:14px 16px 16px;display:flex}
+#quiz{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:20px 22px 20px}
 .qtop{flex:0 0 auto}
 .qbody{
   flex:1; min-height:0; display:grid; gap:16px; margin-top:14px;
@@ -478,7 +479,8 @@ document.addEventListener('click',function(e){
 /* ── 画面切替 ── */
 function show(id){
   ['home','quiz','result','list'].forEach(function(s){$(s).hidden=(s!==id)});
-  $(id).scrollTop=0;
+  document.body.classList.toggle('quizzing',id==='quiz');
+  window.scrollTo(0,0);
 }
 
 /* ── 出題 ── */
