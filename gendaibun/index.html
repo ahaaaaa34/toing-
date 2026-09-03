@@ -178,6 +178,7 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
 .chip:disabled{cursor:default}
 .chip.is-right{border-color:var(--ai);color:var(--ai)}
 .chip.is-wrong{border-color:var(--shu-line);color:var(--shu);background:var(--shu-soft)}
+.chip.is-shown{border-color:var(--shu);color:var(--shu)}
 
 /* 添削の朱・藍 */
 .mark{position:absolute;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible}
@@ -284,7 +285,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -326,6 +327,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
 
       <div class="actions">
         <button class="btn" id="gradeBtn" disabled>答え合わせ</button>
+        <button class="btn ghost" id="dontKnowBtn">わからない</button>
         <button class="btn" id="nextBtn" hidden>次へ</button>
         <button class="link" id="quitBtn">やめる</button>
       </div>
@@ -504,6 +506,7 @@ function start(items,range){
   show('quiz'); renderBank(items); renderQ();
 }
 function markSVG(ok){
+  if(ok==='shown')return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="43" stroke="var(--shu)" style="--len:280" vector-effect="non-scaling-stroke"/></svg>';
   if(ok)return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><circle cx="50" cy="50" r="43" stroke="var(--ai)" style="--len:280" vector-effect="non-scaling-stroke"/></svg>';
   return '<svg class="mark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M14 14 L86 86" stroke="var(--shu)" style="--len:120" vector-effect="non-scaling-stroke"/><path class="d2" d="M86 14 L14 86" stroke="var(--shu)" style="--len:120" vector-effect="non-scaling-stroke"/></svg>';
 }
@@ -526,6 +529,7 @@ function renderQ(){
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
   $('gradeBtn').hidden=false; $('gradeBtn').disabled=true;
+  $('dontKnowBtn').hidden=false;
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
 }
@@ -536,19 +540,24 @@ $('qChips').addEventListener('click',function(e){
   $('gradeBtn').disabled=false;
   if(!$('readRow').hidden)$('qRead').focus();
 });
-function grade(){
-  if(S.graded||!S.sel)return;
+function grade(shown){
+  if(S.graded)return;
+  if(!shown&&!S.sel)return;
   S.graded=true;
   var q=S.deck[S.i], d=q.d;
-  var kOK=S.sel===d.w;
-  var typed=$('qRead').value;
-  var rOK=(d.r===null)?null:(norm(typed)===norm(d.r));
+  var kOK=!shown&&S.sel===d.w;
+  var typed=shown?'':$('qRead').value;
+  var rOK=(d.r===null)?null:(shown?false:norm(typed)===norm(d.r));
 
   [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
     c.disabled=true;
     var w=c.dataset.w;
-    if(w===d.w){c.classList.add('is-right');c.insertAdjacentHTML('beforeend',markSVG(true));c.scrollIntoView({block:'nearest'})}
-    else if(w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
+    if(w===d.w){
+      c.classList.add(shown?'is-shown':'is-right');
+      c.insertAdjacentHTML('beforeend',markSVG(shown?'shown':true));
+      c.scrollIntoView({block:'nearest'});
+    }
+    else if(!shown&&w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
   });
   $('qRead').disabled=true;
   if(rOK!==null){
@@ -556,13 +565,14 @@ function grade(){
     $('readJudge').className='readjudge '+(rOK?'ok':'ng');
   }
   var full=kOK&&(rOK!==false);
-  $('vStamp').textContent=full?'完答':(kOK||rOK?'半解':'要復習');
-  $('vStamp').className='vstamp '+(full?'full':(kOK||rOK?'half':'none'));
-  $('vNote').textContent=(d.r===null)?'カタカナ語のため読みなし':(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
+  $('vStamp').textContent=shown?'未答':(full?'完答':(kOK||rOK?'半解':'要復習'));
+  $('vStamp').className='vstamp '+(full?'full':(!shown&&(kOK||rOK)?'half':'none'));
+  $('vNote').textContent=shown?'答えを見た（未正解として記録）'
+    :((d.r===null)?'カタカナ語のため読みなし':(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×')));
   $('vWord').textContent=d.w;
   $('vRead').textContent=d.r||'';
   $('vAlt').textContent=d.alt?('［'+d.alt+'］とも書く'):'';
-  if(!full){
+  if(!full&&!shown){
     var bits=[];
     if(!kOK)bits.push('選んだ漢字：<s>'+esc(S.sel)+'</s>');
     if(rOK===false)bits.push('書いた読み：<s>'+(typed?esc(typed):'（未記入）')+'</s>');
@@ -570,10 +580,10 @@ function grade(){
     $('vYours').hidden=false;
   }
   $('verdict').hidden=false;
-  $('gradeBtn').hidden=true;
+  $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true;
   $('nextBtn').hidden=false; $('nextBtn').focus();
 
-  S.res.push({d:d,kOK:kOK,rOK:rOK,sel:S.sel,typed:typed});
+  S.res.push({d:d,kOK:kOK,rOK:rOK,sel:shown?null:S.sel,typed:typed,shown:!!shown});
   if(!full){store.wrong[d.w]=(store.wrong[d.w]||0)+1}
   else if(store.wrong[d.w]){store.wrong[d.w]--;if(store.wrong[d.w]<=0)delete store.wrong[d.w]}
   save(store);
@@ -582,17 +592,18 @@ function grade(){
 function next(){
   if(S.i<S.deck.length-1){S.i++;renderQ()}else showResult();
 }
-$('gradeBtn').addEventListener('click',grade);
+$('gradeBtn').addEventListener('click',function(){grade(false)});
+$('dontKnowBtn').addEventListener('click',function(){grade(true)});
 $('nextBtn').addEventListener('click',next);
 $('qRead').addEventListener('keydown',function(e){
   if(e.key!=='Enter'||e.isComposing)return;
   e.preventDefault();
-  if(S.graded)next();else if(S.sel)grade();
+  if(S.graded)next();else if(S.sel)grade(false);
 });
 document.addEventListener('keydown',function(e){
   if($('quiz').hidden)return;
   if(e.target.tagName==='INPUT')return;
-  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade())}
+  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade(false))}
 });
 $('quitBtn').addEventListener('click',function(){if(S.res.length)showResult();else{paintOpts();show('home')}});
 
@@ -615,8 +626,11 @@ function showResult(){
   $('rMissHd').textContent='直しておく語（'+miss.length+'）';
   $('rMiss').innerHTML=miss.map(function(r){
     var bits=[];
-    if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
-    if(r.rOK===false)bits.push('書いた読み '+(r.typed?esc(r.typed):'未記入'));
+    if(r.shown)bits.push('答えを見た');
+    else{
+      if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
+      if(r.rOK===false)bits.push('書いた読み '+(r.typed?esc(r.typed):'未記入'));
+    }
     return '<li><span class="mw">'+esc(r.d.w)+'</span><span><span class="mr">'+esc(r.d.r||'—')+'</span>'
       +'<span class="mm">'+esc(r.d.m)+'</span>'
       +(bits.length?'<span class="mx">'+bits.join('　／　')+'</span>':'')+'</span></li>';
