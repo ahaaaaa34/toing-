@@ -207,7 +207,7 @@ input[type="text"]{
   padding:6px 4px 7px;
 }
 input[type="text"]::placeholder{color:var(--sumi45);opacity:.55;font-size:15px;letter-spacing:.06em}
-input[type="text"]:disabled{color:var(--sumi70)}
+input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
 .readjudge{font-family:'Shippori Mincho',serif;font-size:26px;font-weight:700;line-height:1;padding-bottom:6px}
 .readjudge.ok{color:var(--ai)}
 .readjudge.ng{color:var(--shu)}
@@ -290,7 +290,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進むので、キーボードを出したまま解き続けられます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -430,7 +430,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v3';
+var VER='v4';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -492,7 +492,7 @@ function show(id){
 }
 
 /* ── 出題 ── */
-var S={deck:[],bank:[],i:0,sel:null,graded:false,res:[],range:'all'};
+var S={deck:[],bank:[],i:0,sel:null,graded:false,gradedTyped:'',res:[],range:'all'};
 
 /* 語群＝出題する語が属する問の全語。解答表の並び順のまま、最後まで出しっぱなし */
 function bankGroups(items){var gs={};items.forEach(function(d){gs[d.g]=1});return gs}
@@ -531,13 +531,19 @@ function renderQ(){
   });
   var noRead=(d.r===null);
   $('readRow').hidden=noRead;
-  $('qRead').value=''; $('qRead').disabled=false;
+  $('qRead').value=''; $('qRead').classList.remove('is-graded');
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
   $('gradeBtn').hidden=false; $('gradeBtn').disabled=true;
   $('dontKnowBtn').hidden=false;
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
+  keepKeyboard();
+}
+/* 読み欄にフォーカスを戻し続ける ── ソフトキーボードを出したままにするため */
+function keepKeyboard(){
+  if($('quiz').hidden||$('readRow').hidden)return;
+  $('qRead').focus({preventScroll:true});
 }
 function refreshGradeBtn(){
   if(S.graded)return;
@@ -551,7 +557,10 @@ $('qChips').addEventListener('click',function(e){
   refreshGradeBtn();
   if(!$('readRow').hidden)$('qRead').focus();
 });
-$('qRead').addEventListener('input',refreshGradeBtn);
+$('qRead').addEventListener('input',function(){
+  if(S.graded){this.value=S.gradedTyped;return}
+  refreshGradeBtn();
+});
 function grade(shown){
   if(S.graded)return;
   var q=S.deck[S.i], d=q.d;
@@ -572,7 +581,7 @@ function grade(shown){
     }
     else if(!shown&&w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
   });
-  $('qRead').disabled=true;
+  S.gradedTyped=$('qRead').value; $('qRead').classList.add('is-graded');
   if(rOK!==null){
     $('readJudge').textContent=rOK?'○':'×';
     $('readJudge').className='readjudge '+(rOK?'ok':'ng');
@@ -597,7 +606,8 @@ function grade(shown){
   }
   $('verdict').hidden=false;
   $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true;
-  $('nextBtn').hidden=false; $('nextBtn').focus();
+  $('nextBtn').hidden=false;
+  keepKeyboard();
 
   S.res.push({d:d,kOK:kOK,rOK:rOK,sel:shown?null:S.sel,typed:typed,shown:!!shown});
   if(!full){store.wrong[d.w]=(store.wrong[d.w]||0)+1}
