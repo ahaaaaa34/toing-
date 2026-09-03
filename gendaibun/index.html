@@ -271,7 +271,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
     <ol class="steps">
       <li><span><span class="st">意味を読む</span><span class="sample">未熟で下手なこと。</span></span></li>
       <li><span><span class="st">語群から漢字を選ぶ（語群はずっと出たまま）</span><span class="sample k">凌駕　喝破　軋轢　敷衍　逸脱　<span class="on">稚拙</span>　自明　…</span></span></li>
-      <li><span><span class="st">読み仮名を書く</span><span class="sample"><span class="rd">ちせつ</span></span></span></li>
+      <li><span><span class="st">読み仮名を書く（読みが書ければ、漢字は選ばなくても正解）</span><span class="sample"><span class="rd">ちせつ</span></span></span></li>
     </ol>
   </div>
 
@@ -290,7 +290,7 @@ input[type="text"]:disabled{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -430,7 +430,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v2';
+var VER='v3';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -539,28 +539,35 @@ function renderQ(){
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
 }
+function refreshGradeBtn(){
+  if(S.graded)return;
+  var wrote=!$('readRow').hidden&&$('qRead').value.trim()!=='';
+  $('gradeBtn').disabled=!(S.sel||wrote);
+}
 $('qChips').addEventListener('click',function(e){
   var c=e.target.closest('.chip'); if(!c||S.graded)return;
   S.sel=c.dataset.w;
   [].forEach.call(this.querySelectorAll('.chip'),function(x){x.setAttribute('aria-pressed',String(x===c))});
-  $('gradeBtn').disabled=false;
+  refreshGradeBtn();
   if(!$('readRow').hidden)$('qRead').focus();
 });
+$('qRead').addEventListener('input',refreshGradeBtn);
 function grade(shown){
   if(S.graded)return;
-  if(!shown&&!S.sel)return;
-  S.graded=true;
   var q=S.deck[S.i], d=q.d;
-  var kOK=!shown&&S.sel===d.w;
   var typed=shown?'':$('qRead').value;
   var rOK=(d.r===null)?null:(shown?false:norm(typed)===norm(d.r));
+  if(!shown&&!S.sel&&norm(typed)==='')return;   /* まだ何も答えていない */
+  S.graded=true;
+  /* 漢字を選ばなくても、読みが書けていれば正解とする */
+  var kOK=shown?false:(S.sel?S.sel===d.w:rOK===true);
 
   [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
     c.disabled=true;
     var w=c.dataset.w;
     if(w===d.w){
-      c.classList.add(shown?'is-shown':'is-right');
-      c.insertAdjacentHTML('beforeend',markSVG(shown?'shown':true));
+      c.classList.add(kOK?'is-right':'is-shown');
+      c.insertAdjacentHTML('beforeend',markSVG(kOK?true:'shown'));
       c.scrollIntoView({block:'nearest'});
     }
     else if(!shown&&w===S.sel){c.classList.add('is-wrong');c.insertAdjacentHTML('beforeend',markSVG(false))}
@@ -574,13 +581,16 @@ function grade(shown){
   $('vStamp').textContent=shown?'未答':(full?'完答':(kOK||rOK?'半解':'要復習'));
   $('vStamp').className='vstamp '+(full?'full':(!shown&&(kOK||rOK)?'half':'none'));
   $('vNote').textContent=shown?'答えを見た（未正解として記録）'
-    :((d.r===null)?'カタカナ語のため読みなし':(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×')));
+    :(d.r===null)?'カタカナ語のため読みなし'
+    :(!S.sel)?(rOK?'漢字は選ばず、読みで正解':'漢字は未選択　読み×')
+    :(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
   $('vWord').textContent=d.w;
   $('vRead').textContent=d.r||'';
   $('vAlt').textContent=d.alt?('［'+d.alt+'］とも書く'):'';
   if(!full&&!shown){
     var bits=[];
-    if(!kOK)bits.push('選んだ漢字：<s>'+esc(S.sel)+'</s>');
+    if(!S.sel)bits.push('漢字は未選択');
+    else if(!kOK)bits.push('選んだ漢字：<s>'+esc(S.sel)+'</s>');
     if(rOK===false)bits.push('書いた読み：<s>'+(typed?esc(typed):'（未記入）')+'</s>');
     $('vYours').innerHTML=bits.join('　／　');
     $('vYours').hidden=false;
@@ -604,12 +614,12 @@ $('nextBtn').addEventListener('click',next);
 $('qRead').addEventListener('keydown',function(e){
   if(e.key!=='Enter'||e.isComposing)return;
   e.preventDefault();
-  if(S.graded)next();else if(S.sel)grade(false);
+  if(S.graded)next();else grade(false);
 });
 document.addEventListener('keydown',function(e){
   if($('quiz').hidden)return;
   if(e.target.tagName==='INPUT')return;
-  if(e.key==='Enter'){e.preventDefault();S.graded?next():(S.sel&&grade(false))}
+  if(e.key==='Enter'){e.preventDefault();S.graded?next():grade(false)}
 });
 $('quitBtn').addEventListener('click',function(){if(S.res.length)showResult();else{paintOpts();show('home')}});
 
@@ -634,7 +644,8 @@ function showResult(){
     var bits=[];
     if(r.shown)bits.push('答えを見た');
     else{
-      if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
+      if(!r.sel)bits.push('漢字は未選択');
+      else if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
       if(r.rOK===false)bits.push('書いた読み '+(r.typed?esc(r.typed):'未記入'));
     }
     return '<li><span class="mw">'+esc(r.d.w)+'</span><span><span class="mr">'+esc(r.d.r||'—')+'</span>'
