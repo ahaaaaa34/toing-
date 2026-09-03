@@ -58,20 +58,22 @@ body.quizzing .wrap{height:100dvh;padding:14px 16px 16px;display:flex}
 .qtop{flex:0 0 auto}
 .qbody{
   flex:1; min-height:0; display:grid; gap:16px; margin-top:14px;
-  grid-template-areas:"mean" "bank" "foot";
-  grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-areas:"mean" "ans" "bank" "foot";
+  grid-template-rows:auto auto minmax(0,1fr) auto;
 }
 .qbody>.meaning{grid-area:mean;margin:0}
 .qbody>.choicebox{grid-area:bank;margin:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .qbody>.qfoot{grid-area:foot;display:flex;flex-direction:column;gap:12px}
+.qbody>.verdict{grid-area:ans;margin:0;border-top:0;border-left:3px solid var(--ai);padding:10px 0 10px 14px;background:var(--ai-soft)}
+.qbody>.verdict.miss{border-left-color:var(--shu);background:var(--shu-soft)}
 .qfoot .readrow,.qfoot .verdict,.qfoot .actions{margin-top:0}
 .qfoot .verdict{border-top:1px solid var(--rule);padding-top:12px}
 /* 横に余裕があれば、語群を右・問題と解答欄を左に */
 @media (min-width:880px){
   .qbody{
-    grid-template-areas:"mean bank" "foot bank";
+    grid-template-areas:"mean bank" "ans bank" "foot bank";
     grid-template-columns:minmax(290px,32%) 1fr;
-    grid-template-rows:auto minmax(0,1fr);
+    grid-template-rows:auto auto minmax(0,1fr);
     column-gap:28px; row-gap:16px;
   }
 }
@@ -306,6 +308,16 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
   <div class="qbody">
     <p class="meaning"><span class="lead">【意味】</span><span id="qMeaning"></span></p>
 
+    <div class="verdict" id="verdict" hidden>
+      <div class="vhead"><span class="vstamp" id="vStamp"></span><span class="qcount" id="vNote"></span></div>
+      <div class="answer">
+        <span class="aw mincho" id="vWord"></span>
+        <span class="ar" id="vRead"></span>
+        <span class="av" id="vAlt"></span>
+      </div>
+      <div class="yours" id="vYours" hidden></div>
+    </div>
+
     <div class="choicebox">
       <div class="flabel">【語群】<span class="src" id="bankLabel"></span></div>
       <div class="chips" id="qChips"></div>
@@ -320,18 +332,9 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
         <div class="readjudge" id="readJudge"></div>
       </div>
 
-      <div class="verdict" id="verdict" hidden>
-        <div class="vhead"><span class="vstamp" id="vStamp"></span><span class="qcount" id="vNote"></span></div>
-        <div class="answer">
-          <span class="aw mincho" id="vWord"></span>
-          <span class="ar" id="vRead"></span>
-          <span class="av" id="vAlt"></span>
-        </div>
-        <div class="yours" id="vYours" hidden></div>
-      </div>
 
       <div class="actions">
-        <button class="btn" id="gradeBtn" disabled>答え合わせ</button>
+        <button class="btn" id="gradeBtn">答え合わせ</button>
         <button class="btn ghost" id="dontKnowBtn">わからない</button>
         <button class="btn" id="nextBtn" hidden>次へ</button>
         <button class="link" id="quitBtn">やめる</button>
@@ -430,7 +433,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v4';
+var VER='v5';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -534,7 +537,7 @@ function renderQ(){
   $('qRead').value=''; $('qRead').classList.remove('is-graded');
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
-  $('gradeBtn').hidden=false; $('gradeBtn').disabled=true;
+  $('gradeBtn').hidden=false; $('gradeBtn').disabled=false;
   $('dontKnowBtn').hidden=false;
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
@@ -545,11 +548,7 @@ function keepKeyboard(){
   if($('quiz').hidden||$('readRow').hidden)return;
   $('qRead').focus({preventScroll:true});
 }
-function refreshGradeBtn(){
-  if(S.graded)return;
-  var wrote=!$('readRow').hidden&&$('qRead').value.trim()!=='';
-  $('gradeBtn').disabled=!(S.sel||wrote);
-}
+function refreshGradeBtn(){ if(!S.graded)$('gradeBtn').disabled=false; }
 $('qChips').addEventListener('click',function(e){
   var c=e.target.closest('.chip'); if(!c||S.graded)return;
   S.sel=c.dataset.w;
@@ -566,7 +565,6 @@ function grade(shown){
   var q=S.deck[S.i], d=q.d;
   var typed=shown?'':$('qRead').value;
   var rOK=(d.r===null)?null:(shown?false:norm(typed)===norm(d.r));
-  if(!shown&&!S.sel&&norm(typed)==='')return;   /* まだ何も答えていない */
   S.graded=true;
   /* 漢字を選ばなくても、読みが書けていれば正解とする */
   var kOK=shown?false:(S.sel?S.sel===d.w:rOK===true);
@@ -604,6 +602,7 @@ function grade(shown){
     $('vYours').innerHTML=bits.join('　／　');
     $('vYours').hidden=false;
   }
+  $('verdict').classList.toggle('miss',!full);
   $('verdict').hidden=false;
   $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true;
   $('nextBtn').hidden=false;
