@@ -52,32 +52,50 @@ body{
 #home,#result,#list{max-width:760px;margin:0 auto}
 
 /* 出題中だけ、1問が画面に収まるよう高さを固定する */
-body.quizzing{overflow:hidden}
-body.quizzing .wrap{height:100dvh;padding:14px 16px 16px;display:flex}
+body.quizzing{overflow:hidden;position:fixed;inset:0;width:100%}
+body.quizzing .wrap{height:var(--vvh,100dvh);padding:12px 16px 12px;display:flex}
 #quiz{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:20px 22px 20px}
 .qtop{flex:0 0 auto}
 .qbody{
   flex:1; min-height:0; display:grid; gap:16px; margin-top:14px;
   grid-template-areas:"mean" "ans" "bank" "foot";
-  grid-template-rows:auto auto minmax(0,1fr) auto;
+  grid-template-rows:minmax(0,auto) minmax(0,auto) minmax(0,1fr) auto;
 }
-.qbody>.meaning{grid-area:mean;margin:0}
+.qbody>.meaning{grid-area:mean;margin:0;min-height:0;overflow-y:auto}
 .qbody>.choicebox{grid-area:bank;margin:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .qbody>.qfoot{grid-area:foot;display:flex;flex-direction:column;gap:12px}
-.qbody>.verdict{grid-area:ans;margin:0;border-top:0;border-left:3px solid var(--ai);padding:10px 0 10px 14px;background:var(--ai-soft)}
+.qbody>.verdict{grid-area:ans;margin:0;min-height:0;overflow-y:auto;border-top:0;border-left:3px solid var(--ai);padding:10px 0 10px 14px;background:var(--ai-soft)}
 .qbody>.verdict.miss{border-left-color:var(--shu);background:var(--shu-soft)}
 .qfoot .readrow,.qfoot .verdict,.qfoot .actions{margin-top:0}
 .qfoot .verdict{border-top:1px solid var(--rule);padding-top:12px}
 /* 横に余裕があれば、語群を右・問題と解答欄を左に */
 @media (min-width:880px){
   .qbody{
-    grid-template-areas:"mean bank" "ans bank" "foot bank";
+    grid-template-areas:"mean bank" "ans bank" "foot bank" "pad bank";
     grid-template-columns:minmax(290px,32%) 1fr;
-    grid-template-rows:auto auto minmax(0,1fr);
+    grid-template-rows:minmax(0,auto) minmax(0,auto) auto minmax(0,1fr);
     column-gap:28px; row-gap:16px;
   }
 }
 .sheet::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--ai);border-radius:3px 3px 0 0}
+
+/* キーボードが出ている前提の高さ ── 詰めて、入力欄とボタンを必ず残す */
+@media (max-height:560px){
+  body.quizzing .wrap{padding:8px 12px 8px}
+  #quiz{padding:12px 14px 12px}
+  .qbody{gap:10px;margin-top:8px}
+  .qbody>.meaning{font-size:16px;line-height:1.5}
+  .qbody>.verdict{padding:8px 0 8px 12px}
+  .answer{margin-top:4px}
+  .answer .aw{font-size:22px}
+  .qbody>.qfoot{gap:8px}
+  .bar{margin-top:8px}
+  .btn{padding:9px 18px;font-size:14px}
+  .chip{font-size:17px;padding:5px 9px 4px}
+  input[type="text"]{font-size:18px;padding:4px 4px 5px}
+  .flabel{margin-bottom:5px}
+  .readrow .flabel{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+}
 
 .eyebrow{
   font-size:11px;letter-spacing:.14em;color:var(--sumi45);font-weight:500;
@@ -433,7 +451,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v5';
+var VER='v6';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -543,10 +561,25 @@ function renderQ(){
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
   keepKeyboard();
 }
+/* ソフトキーボードで画面が押し上げられないよう、見えている領域に合わせる */
+function fitViewport(){
+  var vv=window.visualViewport;
+  var h=vv?vv.height:window.innerHeight;
+  document.documentElement.style.setProperty('--vvh',Math.round(h)+'px');
+  if(document.body.classList.contains('quizzing')&&window.pageYOffset!==0)window.scrollTo(0,0);
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',fitViewport);
+  window.visualViewport.addEventListener('scroll',fitViewport);
+}
+window.addEventListener('resize',fitViewport);
+window.addEventListener('orientationchange',function(){setTimeout(fitViewport,250)});
+
 /* 読み欄にフォーカスを戻し続ける ── ソフトキーボードを出したままにするため */
 function keepKeyboard(){
   if($('quiz').hidden||$('readRow').hidden)return;
   $('qRead').focus({preventScroll:true});
+  fitViewport();
 }
 function refreshGradeBtn(){ if(!S.graded)$('gradeBtn').disabled=false; }
 $('qChips').addEventListener('click',function(e){
@@ -685,6 +718,7 @@ $('toList').addEventListener('click',function(){paintList();show('list')});
 $('toHome3').addEventListener('click',function(){paintOpts();show('home')});
 
 $('ver').textContent=VER;
+fitViewport();
 paintOpts();
 </script>
 </body>
