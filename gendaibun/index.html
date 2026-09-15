@@ -431,7 +431,7 @@ var DATA=[
  {g:2,n:12,w:'超克',r:'ちょうこく',m:'困難を乗り越え、打ち勝つこと。'},
  {g:2,n:13,w:'強靱',alt:'強靭',r:'きょうじん',m:'しなやかで強いこと。'},
  {g:2,n:14,w:'倒錯',r:'とうさく',m:'正常とされることや常識がひっくり返った状態。'},
- {g:2,n:15,w:'アンビバレンス',r:null,m:'相反する感情を同時にいだくこと。'},
+ {g:2,n:15,w:'アンビバレンス',r:'あんびばれんす',m:'相反する感情を同時にいだくこと。'},
  {g:2,n:16,w:'媒介',r:'ばいかい',m:'二つのものをつなぎ、橋渡しすること。'},
  {g:2,n:17,w:'洗練',r:'せんれん',m:'磨いて優雅にすること。'},
  {g:2,n:18,w:'標榜',r:'ひょうぼう',m:'主義主張をはっきり掲げること。'},
@@ -451,7 +451,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v6';
+var VER='v7';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -550,8 +550,6 @@ function renderQ(){
     c.className='chip'; c.disabled=false; c.setAttribute('aria-pressed','false');
     var m=c.querySelector('.mark'); if(m)m.remove();
   });
-  var noRead=(d.r===null);
-  $('readRow').hidden=noRead;
   $('qRead').value=''; $('qRead').classList.remove('is-graded');
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
@@ -577,7 +575,7 @@ window.addEventListener('orientationchange',function(){setTimeout(fitViewport,25
 
 /* 読み欄にフォーカスを戻し続ける ── ソフトキーボードを出したままにするため */
 function keepKeyboard(){
-  if($('quiz').hidden||$('readRow').hidden)return;
+  if($('quiz').hidden)return;
   $('qRead').focus({preventScroll:true});
   fitViewport();
 }
@@ -587,7 +585,7 @@ $('qChips').addEventListener('click',function(e){
   S.sel=c.dataset.w;
   [].forEach.call(this.querySelectorAll('.chip'),function(x){x.setAttribute('aria-pressed',String(x===c))});
   refreshGradeBtn();
-  if(!$('readRow').hidden)$('qRead').focus();
+  $('qRead').focus();
 });
 $('qRead').addEventListener('input',function(){
   if(S.graded){this.value=S.gradedTyped;return}
@@ -597,7 +595,7 @@ function grade(shown){
   if(S.graded)return;
   var q=S.deck[S.i], d=q.d;
   var typed=shown?'':$('qRead').value;
-  var rOK=(d.r===null)?null:(shown?false:norm(typed)===norm(d.r));
+  var rOK=shown?false:norm(typed)===norm(d.r);
   S.graded=true;
   /* 漢字を選ばなくても、読みが書けていれば正解とする */
   var kOK=shown?false:(S.sel?S.sel===d.w:rOK===true);
@@ -621,7 +619,6 @@ function grade(shown){
   $('vStamp').textContent=shown?'未答':(full?'完答':(kOK||rOK?'半解':'要復習'));
   $('vStamp').className='vstamp '+(full?'full':(!shown&&(kOK||rOK)?'half':'none'));
   $('vNote').textContent=shown?'答えを見た（未正解として記録）'
-    :(d.r===null)?'カタカナ語のため読みなし'
     :(!S.sel)?(rOK?'漢字は選ばず、読みで正解':'漢字は未選択　読み×')
     :(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
   $('vWord').textContent=d.w;
