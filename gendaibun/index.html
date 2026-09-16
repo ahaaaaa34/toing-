@@ -323,7 +323,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。空白だけ入力してエンターを押せば、その語は不正解として次に進めます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。「。」だけ入力してエンターを押せば、その語は不正解として次に進めます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -464,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v12';
+var VER='v13';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -479,7 +479,7 @@ function norm(s){
   if(!s)return '';
   s=s.replace(/[\s　]/g,'').trim();
   s=s.replace(/[ァ-ヶ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x60)});
-  return s.replace(/[・･ー\-]/g,'');
+  return s.replace(/[・･ー\-。、.,]/g,'');
 }
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -689,7 +689,7 @@ function grade(shown){
     var bits=[];
     if(!S.sel)bits.push('漢字は未選択');
     else if(!kOK)bits.push('選んだ漢字：<s>'+esc(S.sel)+'</s>');
-    if(rOK===false)bits.push('書いた読み：<s>'+(typed?esc(typed):'（未記入）')+'</s>');
+    if(rOK===false)bits.push('書いた読み：<s>'+(norm(typed)?esc(typed):'（未記入）')+'</s>');
     $('vYours').innerHTML=bits.join('　／　');
     $('vYours').hidden=false;
   }
@@ -766,7 +766,7 @@ function showResult(){
     else{
       if(!r.sel)bits.push('漢字は未選択');
       else if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
-      if(r.rOK===false)bits.push('書いた読み '+(r.typed?esc(r.typed):'未記入'));
+      if(r.rOK===false)bits.push('書いた読み '+(norm(r.typed)?esc(r.typed):'未記入'));
     }
     return '<li><span class="mw">'+esc(r.d.w)+'</span><span><span class="mr">'+esc(r.d.r||'—')+'</span>'
       +'<span class="mm">'+esc(r.d.m)+'</span>'
