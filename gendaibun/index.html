@@ -196,6 +196,7 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
   background:transparent;color:var(--sumi);
   border:1px solid var(--rule);border-radius:2px;
   padding:6px 10px 5px;cursor:pointer;
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
   transition:border-color .13s,background .13s,color .13s;
 }
 .chip:hover:not(:disabled){border-color:var(--ai-line);background:var(--ai-soft)}
@@ -206,6 +207,18 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
 .chip.is-shown{border-color:var(--shu);color:var(--shu)}
 
 /* 添削の朱・藍 */
+.peek{
+  position:fixed;z-index:60;max-width:min(330px,calc(100vw - 20px));
+  background:var(--sheet);border:1px solid var(--ai-line);border-left:3px solid var(--ai);
+  border-radius:2px;padding:10px 14px;pointer-events:none;
+  box-shadow:0 2px 6px rgba(26,29,35,.10),0 14px 34px -14px rgba(26,29,35,.45);
+}
+.peek .pw{font-family:'Shippori Mincho',serif;font-weight:800;font-size:21px;letter-spacing:.08em}
+.peek .pv{font-family:'Zen Kaku Gothic New',sans-serif;font-size:11px;font-weight:500;color:var(--sumi45);letter-spacing:0}
+.peek .pr{font-size:12.5px;font-weight:700;color:var(--ai);letter-spacing:.1em;margin-left:9px}
+.peek .pm{font-size:13px;color:var(--sumi70);line-height:1.65;margin-top:4px}
+.chip.peeking{border-color:var(--ai);background:var(--ai-soft)}
+
 .mark{position:absolute;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);pointer-events:none;overflow:visible}
 .mark path,.mark circle{fill:none;stroke-width:2.4;stroke-linecap:round;
   stroke-dasharray:var(--len,240);stroke-dashoffset:var(--len,240);
@@ -290,7 +303,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <div class="howto-hd">解き方</div>
     <ol class="steps">
       <li><span><span class="st">意味を読む</span><span class="sample">未熟で下手なこと。</span></span></li>
-      <li><span><span class="st">語群から漢字を選ぶ（語群はずっと出たまま）</span><span class="sample k">凌駕　喝破　軋轢　敷衍　逸脱　<span class="on">稚拙</span>　自明　…</span></span></li>
+      <li><span><span class="st">語群から漢字を選ぶ（長押しでその語の意味が見られる）</span><span class="sample k">凌駕　喝破　軋轢　敷衍　逸脱　<span class="on">稚拙</span>　自明　…</span></span></li>
       <li><span><span class="st">読み仮名を書く（読みが書ければ、漢字は選ばなくても正解）</span><span class="sample"><span class="rd">ちせつ</span></span></span></li>
     </ol>
   </div>
@@ -310,7 +323,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進むので、キーボードを出したまま解き続けられます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進むので、キーボードを出したまま解き続けられます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -451,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v7';
+var VER='v8';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -546,6 +559,7 @@ function renderQ(){
   $('qTotal').textContent=S.deck.length;
   $('qBar').style.width=(S.i/S.deck.length*100)+'%';
   $('qMeaning').textContent=d.m;
+  hidePeek();
   [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
     c.className='chip'; c.disabled=false; c.setAttribute('aria-pressed','false');
     var m=c.querySelector('.mark'); if(m)m.remove();
@@ -580,8 +594,52 @@ function keepKeyboard(){
   fitViewport();
 }
 function refreshGradeBtn(){ if(!S.graded)$('gradeBtn').disabled=false; }
+/* ── 語群の漢字を長押しすると、いま解いている問題と関係なく意味が出る ── */
+var peekEl=null,peekTimer=null,peeked=false,peekChip=null,peekX=0,peekY=0;
+function hidePeek(){
+  clearTimeout(peekTimer); peekTimer=null;
+  if(peekEl){peekEl.remove();peekEl=null}
+  if(peekChip){peekChip.classList.remove('peeking');peekChip=null}
+}
+function showPeek(c){
+  var d=null;
+  for(var i=0;i<DATA.length;i++)if(DATA[i].w===c.dataset.w){d=DATA[i];break}
+  if(!d)return;
+  hidePeek();
+  peekChip=c; c.classList.add('peeking');
+  var e=document.createElement('div');
+  e.className='peek';
+  e.innerHTML='<div><span class="pw">'+esc(d.w)+(d.alt?'<span class="pv">（'+esc(d.alt)+'）</span>':'')+'</span>'
+    +'<span class="pr">'+esc(d.r)+'</span></div><div class="pm">'+esc(d.m)+'</div>';
+  document.body.appendChild(e); peekEl=e;
+  var r=c.getBoundingClientRect(), b=e.getBoundingClientRect();
+  var top=r.top-b.height-8; if(top<8)top=Math.min(r.bottom+8,window.innerHeight-b.height-8);
+  var left=Math.max(8,Math.min(r.left+r.width/2-b.width/2,window.innerWidth-b.width-8));
+  e.style.top=Math.round(Math.max(8,top))+'px';
+  e.style.left=Math.round(left)+'px';
+}
+document.addEventListener('pointerdown',hidePeek,true);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')hidePeek()});
+$('qChips').parentNode.addEventListener('scroll',hidePeek);
+$('qChips').addEventListener('contextmenu',function(e){e.preventDefault()});
+$('qChips').addEventListener('pointerdown',function(e){
+  var c=e.target.closest('.chip'); if(!c)return;
+  peeked=false; peekX=e.clientX; peekY=e.clientY;
+  peekTimer=setTimeout(function(){peeked=true;showPeek(c)},420);
+});
+$('qChips').addEventListener('pointermove',function(e){
+  if(peekTimer&&(Math.abs(e.clientX-peekX)>10||Math.abs(e.clientY-peekY)>10)){clearTimeout(peekTimer);peekTimer=null}
+});
+['pointerup','pointercancel','pointerleave'].forEach(function(t){
+  $('qChips').addEventListener(t,function(){
+    clearTimeout(peekTimer);peekTimer=null;
+    keepKeyboard();   /* 長押しでフォーカスが外れてもキーボードを落とさない */
+  });
+});
+
 $('qChips').addEventListener('click',function(e){
   var c=e.target.closest('.chip'); if(!c||S.graded)return;
+  if(peeked){peeked=false;return}   /* 長押しで意味を見ただけ。選んだことにしない */
   S.sel=c.dataset.w;
   [].forEach.call(this.querySelectorAll('.chip'),function(x){x.setAttribute('aria-pressed',String(x===c))});
   refreshGradeBtn();
@@ -601,7 +659,6 @@ function grade(shown){
   var kOK=shown?false:(S.sel?S.sel===d.w:rOK===true);
 
   [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
-    c.disabled=true;
     var w=c.dataset.w;
     if(w===d.w){
       c.classList.add(kOK?'is-right':'is-shown');
