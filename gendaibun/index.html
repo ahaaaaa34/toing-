@@ -464,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v11';
+var VER='v12';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -711,20 +711,35 @@ function next(){
 $('gradeBtn').addEventListener('click',function(){grade(false)});
 $('dontKnowBtn').addEventListener('click',function(){grade(true)});
 $('nextBtn').addEventListener('click',next);
-function isGoKey(e){
-  /* 変換中のエンターは IME のものなので触らない */
-  if(e.isComposing||e.keyCode===229)return false;
-  return e.key==='Enter';
-}
-$('qRead').addEventListener('keydown',function(e){
-  if(!isGoKey(e))return;
-  e.preventDefault();
+/* エンターで「答え合わせ → 次へ」。
+   日本語入力では keydown のエンターが変換確定に食われるので、
+   取りこぼしたぶんを keyup で拾う（二重発火は時間で抑える）。 */
+var lastGo=0;
+function doGo(){
+  if($('quiz').hidden)return;
+  var t=Date.now(); if(t-lastGo<150)return; lastGo=t;
   if(S.graded)next();else grade(false);
-});
+}
+function onEnterDown(e){
+  if(e.key!=='Enter')return;
+  if(e.isComposing||e.keyCode===229)return;   /* 変換中は IME に任せる */
+  e.preventDefault(); doGo();
+}
+function onEnterUp(e){
+  if(e.key!=='Enter'||e.isComposing)return;
+  setTimeout(doGo,0);   /* 確定後の値で判定する */
+}
+$('qRead').addEventListener('keydown',onEnterDown);
+$('qRead').addEventListener('keyup',onEnterUp);
 document.addEventListener('keydown',function(e){
   if($('quiz').hidden)return;
   if(e.target.tagName==='INPUT')return;
-  if(isGoKey(e)){e.preventDefault();S.graded?next():grade(false)}
+  onEnterDown(e);
+});
+document.addEventListener('keyup',function(e){
+  if($('quiz').hidden)return;
+  if(e.target.tagName==='INPUT')return;
+  onEnterUp(e);
 });
 $('quitBtn').addEventListener('click',function(){if(S.res.length)showResult();else{paintOpts();show('home')}});
 
