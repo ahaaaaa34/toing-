@@ -464,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v8';
+var VER='v9';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -530,7 +530,11 @@ var S={deck:[],bank:[],i:0,sel:null,graded:false,gradedTyped:'',res:[],range:'al
 
 /* 語群＝出題する語が属する問の全語。解答表の並び順のまま、最後まで出しっぱなし */
 function bankGroups(items){var gs={};items.forEach(function(d){gs[d.g]=1});return gs}
-function buildBank(items){var gs=bankGroups(items);return DATA.filter(function(d){return gs[d.g]})}
+function buildBank(items){
+  var gs=bankGroups(items), a=[], b=[];
+  DATA.forEach(function(d){ if(gs[d.g])(d.w.length===2?a:b).push(d) });
+  return a.concat(b);
+}
 function renderBank(items){
   S.bank=buildBank(items);
   var names=Object.keys(bankGroups(items)).sort().map(function(g){return GNAME[g]});
