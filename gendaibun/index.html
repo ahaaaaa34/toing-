@@ -323,7 +323,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。「。」だけ入力してエンターを押せば、打たずに正解として記録して次へ進めます。空欄のままエンターなら不正解として記録します。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。空白（または「。」）だけ入力してエンターを押せば、打たずに正解として記録して次へ進めます。何も入れずにエンターなら不正解として記録します。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -464,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v14';
+var VER='v15';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -657,8 +657,9 @@ function grade(shown){
   if(S.graded)return;
   var q=S.deck[S.i], d=q.d;
   var typed=shown?'':$('qRead').value;
-  /* 「。」だけ入力＝「分かっているので打たずに正解にする」合図 */
-  var maru=!shown&&/^。+$/.test(typed.replace(/[\s　]/g,''));
+  /* 空白や「。」だけ入力＝「分かっているので打たずに正解にする」合図。
+     何も入れずにエンターしたときとは区別する */
+  var maru=!shown&&typed.length>0&&/^[\s　。、]+$/.test(typed);
   var rOK=shown?false:(maru||norm(typed)===norm(d.r));
   S.graded=true;
   /* 漢字を選ばなくても、読みが書けていれば正解とする */
@@ -682,7 +683,7 @@ function grade(shown){
   $('vStamp').textContent=shown?'未答':(full?'完答':(kOK||rOK?'半解':'要復習'));
   $('vStamp').className='vstamp '+(full?'full':(!shown&&(kOK||rOK)?'half':'none'));
   $('vNote').textContent=shown?'答えを見た（未正解として記録）'
-    :maru?'「。」で正解として記録'
+    :maru?'空白で正解として記録'
     :(!S.sel)?(rOK?'漢字は選ばず、読みで正解':'漢字は未選択　読み×')
     :(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
   $('vWord').textContent=d.w;
