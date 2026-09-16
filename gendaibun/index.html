@@ -323,7 +323,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーか空白キーで「答え合わせ → 次へ」と進むので、キーボードを出したまま解き続けられます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。空白だけ入力してエンターを押せば、その語は不正解として次に進めます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -464,7 +464,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v10';
+var VER='v11';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -712,9 +712,9 @@ $('gradeBtn').addEventListener('click',function(){grade(false)});
 $('dontKnowBtn').addEventListener('click',function(){grade(true)});
 $('nextBtn').addEventListener('click',next);
 function isGoKey(e){
-  /* 変換中の Enter・空白は IME のものなので触らない */
+  /* 変換中のエンターは IME のものなので触らない */
   if(e.isComposing||e.keyCode===229)return false;
-  return e.key==='Enter'||e.key===' '||e.key==='Spacebar';
+  return e.key==='Enter';
 }
 $('qRead').addEventListener('keydown',function(e){
   if(!isGoKey(e))return;
