@@ -167,11 +167,12 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
 .btn[disabled]{opacity:.35;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--sumi);border-color:var(--rule)}
 .btn.ghost:hover{border-color:var(--ai-line);opacity:1}
-.hintkey{
-  order:9;font-size:12px;color:var(--sumi45);letter-spacing:.04em;
-  border:1px dashed var(--ai-line);border-radius:2px;padding:4px 9px;
+.btn.selfok{
+  background:transparent;color:var(--ai);border-color:var(--ai);
+  display:inline-flex;align-items:baseline;gap:8px;
 }
-.hintkey b{color:var(--ai);font-weight:700}
+.btn.selfok small{font-size:11px;font-weight:500;color:var(--sumi45);letter-spacing:.04em}
+.btn.selfok:hover{background:var(--ai-soft);opacity:1}
 .link{
   background:none;border:0;font:inherit;font-size:13.5px;color:var(--ai);
   cursor:pointer;padding:4px 0;border-bottom:1px solid var(--ai-line);
@@ -328,7 +329,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。答え合わせのあと空白キーを押すと、その問題を正解に直して次へ進みます。読みを打つのが面倒なときは、エンター→空白の二打で流せます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。答え合わせのあと【正解にする】を押すか空白キーを叩くと、その問題を正解に直して次へ進みます。読みを打つのが面倒なときは、エンター→空白の二打で流せます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -370,7 +371,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
 
 
       <div class="actions">
-        <span class="hintkey" id="selfHint" hidden>空白キーで<b>正解にして次へ</b></span>
+        <button class="btn selfok" id="selfOkBtn" hidden>正解にする<small>空白キー</small></button>
         <button class="btn" id="gradeBtn">答え合わせ</button>
         <button class="btn ghost" id="dontKnowBtn">わからない</button>
         <button class="btn" id="nextBtn" hidden>次へ</button>
@@ -470,7 +471,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v17';
+var VER='v18';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -578,7 +579,7 @@ function renderQ(){
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
   $('gradeBtn').hidden=false; $('gradeBtn').disabled=false;
-  $('dontKnowBtn').hidden=false; $('selfHint').hidden=true;
+  $('dontKnowBtn').hidden=false; $('selfOkBtn').hidden=true;
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
   keepKeyboard();
@@ -707,7 +708,7 @@ function grade(shown){
   }
   $('verdict').classList.toggle('miss',!full);
   $('verdict').hidden=false;
-  $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true; $('selfHint').hidden=false;
+  $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true; $('selfOkBtn').hidden=false;
   $('nextBtn').hidden=false;
   keepKeyboard();
 
@@ -723,6 +724,7 @@ function next(){
 $('gradeBtn').addEventListener('click',function(){grade(false)});
 $('dontKnowBtn').addEventListener('click',function(){grade(true)});
 $('nextBtn').addEventListener('click',next);
+$('selfOkBtn').addEventListener('click',function(){markCorrectAndNext();keepKeyboard()});
 /* エンターで「答え合わせ → 次へ」。
    日本語入力では keydown のエンターが変換確定に食われるので、
    取りこぼしたぶんを keyup で拾う（二重発火は時間で抑える）。 */
