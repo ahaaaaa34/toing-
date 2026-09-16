@@ -167,6 +167,11 @@ hr.rule{border:0;border-top:1px solid var(--rule);margin:24px 0}
 .btn[disabled]{opacity:.35;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--sumi);border-color:var(--rule)}
 .btn.ghost:hover{border-color:var(--ai-line);opacity:1}
+.hintkey{
+  order:9;font-size:12px;color:var(--sumi45);letter-spacing:.04em;
+  border:1px dashed var(--ai-line);border-radius:2px;padding:4px 9px;
+}
+.hintkey b{color:var(--ai);font-weight:700}
 .link{
   background:none;border:0;font:inherit;font-size:13.5px;color:var(--ai);
   cursor:pointer;padding:4px 0;border-bottom:1px solid var(--ai-line);
@@ -323,7 +328,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
     <button class="link" id="toList">語一覧を見る</button>
   </div>
 
-  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。空白（または「。」）だけ入力してエンターを押せば、打たずに正解として記録して次へ進めます。何も入れずにエンターなら不正解として記録します。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
+  <p class="foot">採点結果はこの端末にだけ残ります。間違えた語は「苦手」に貯まり、次からそこだけ選んで解き直せます。語群の漢字は長押しすると、いま解いている問題と関係なく意味が出ます。漢字を選ばずに読み仮名だけ書いても、合っていれば正解になります。エンターキーで「答え合わせ → 次へ」と進みます。答え合わせのあと空白キーを押すと、その問題を正解に直して次へ進みます。読みを打つのが面倒なときは、エンター→空白の二打で流せます。手が止まったら【わからない】で答えを見られます（未正解として記録されます）。</p>
 </main>
 
 <!-- ═══ 出題 ═══ -->
@@ -365,6 +370,7 @@ input[type="text"]:disabled,input[type="text"].is-graded{color:var(--sumi70)}
 
 
       <div class="actions">
+        <span class="hintkey" id="selfHint" hidden>空白キーで<b>正解にして次へ</b></span>
         <button class="btn" id="gradeBtn">答え合わせ</button>
         <button class="btn ghost" id="dontKnowBtn">わからない</button>
         <button class="btn" id="nextBtn" hidden>次へ</button>
@@ -464,7 +470,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v15';
+var VER='v16';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -572,7 +578,7 @@ function renderQ(){
   $('readJudge').textContent=''; $('readJudge').className='readjudge';
   $('verdict').hidden=true; $('vYours').hidden=true;
   $('gradeBtn').hidden=false; $('gradeBtn').disabled=false;
-  $('dontKnowBtn').hidden=false;
+  $('dontKnowBtn').hidden=false; $('selfHint').hidden=true;
   $('nextBtn').hidden=true;
   $('nextBtn').textContent=(S.i===S.deck.length-1)?'採点する':'次へ';
   keepKeyboard();
@@ -657,13 +663,10 @@ function grade(shown){
   if(S.graded)return;
   var q=S.deck[S.i], d=q.d;
   var typed=shown?'':$('qRead').value;
-  /* 空白や「。」だけ入力＝「分かっているので打たずに正解にする」合図。
-     何も入れずにエンターしたときとは区別する */
-  var maru=!shown&&typed.length>0&&/^[\s　。、]+$/.test(typed);
-  var rOK=shown?false:(maru||norm(typed)===norm(d.r));
+  var rOK=shown?false:norm(typed)===norm(d.r);
   S.graded=true;
   /* 漢字を選ばなくても、読みが書けていれば正解とする */
-  var kOK=shown?false:(maru?true:(S.sel?S.sel===d.w:rOK===true));
+  var kOK=shown?false:(S.sel?S.sel===d.w:rOK===true);
 
   [].forEach.call($('qChips').querySelectorAll('.chip'),function(c){
     var w=c.dataset.w;
@@ -683,7 +686,6 @@ function grade(shown){
   $('vStamp').textContent=shown?'未答':(full?'完答':(kOK||rOK?'半解':'要復習'));
   $('vStamp').className='vstamp '+(full?'full':(!shown&&(kOK||rOK)?'half':'none'));
   $('vNote').textContent=shown?'答えを見た（未正解として記録）'
-    :maru?'空白で正解として記録'
     :(!S.sel)?(rOK?'漢字は選ばず、読みで正解':'漢字は未選択　読み×')
     :(kOK?(rOK?'':'漢字○ 読み×'):(rOK?'漢字× 読み○':'漢字× 読み×'));
   $('vWord').textContent=d.w;
@@ -699,7 +701,7 @@ function grade(shown){
   }
   $('verdict').classList.toggle('miss',!full);
   $('verdict').hidden=false;
-  $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true;
+  $('gradeBtn').hidden=true; $('dontKnowBtn').hidden=true; $('selfHint').hidden=false;
   $('nextBtn').hidden=false;
   keepKeyboard();
 
@@ -719,14 +721,31 @@ $('nextBtn').addEventListener('click',next);
    日本語入力では keydown のエンターが変換確定に食われるので、
    取りこぼしたぶんを keyup で拾う（二重発火は時間で抑える）。 */
 var lastGo=0;
+/* 採点のあと空白キーを押したら、その問題を正解に直して次へ進む */
+function markCorrectAndNext(){
+  if(!S.graded||!S.res.length){next();return}
+  var r=S.res[S.res.length-1], w=r.d.w;
+  if(!(r.kOK&&r.rOK!==false)){
+    r.kOK=true; r.rOK=true; r.shown=false; r.selfOK=true;
+    if(store.wrong[w]){store.wrong[w]--;if(store.wrong[w]<=0)delete store.wrong[w]}  /* 誤答として足したぶんを取り消す */
+    if(store.wrong[w]){store.wrong[w]--;if(store.wrong[w]<=0)delete store.wrong[w]}  /* 正解ぶんを引く */
+    save(store);
+  }
+  next();
+}
 function doGo(){
   if($('quiz').hidden)return;
   var t=Date.now(); if(t-lastGo<150)return; lastGo=t;
   if(S.graded)next();else grade(false);
 }
 function onEnterDown(e){
-  if(e.key!=='Enter')return;
   if(e.isComposing||e.keyCode===229)return;   /* 変換中は IME に任せる */
+  if(S.graded&&(e.key===' '||e.key==='Spacebar')){
+    e.preventDefault();
+    var t=Date.now(); if(t-lastGo<150)return; lastGo=t;
+    markCorrectAndNext(); return;
+  }
+  if(e.key!=='Enter')return;
   e.preventDefault(); doGo();
 }
 function onEnterUp(e){
@@ -766,7 +785,8 @@ function showResult(){
   $('rMissHd').textContent='直しておく語（'+miss.length+'）';
   $('rMiss').innerHTML=miss.map(function(r){
     var bits=[];
-    if(r.shown)bits.push('答えを見た');
+    if(r.selfOK)bits.push('空白で正解にした');
+    else if(r.shown)bits.push('答えを見た');
     else{
       if(!r.sel)bits.push('漢字は未選択');
       else if(!r.kOK)bits.push('選んだ漢字 '+esc(r.sel));
