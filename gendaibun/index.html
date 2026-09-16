@@ -470,7 +470,7 @@ var DATA=[
 ];
 var MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 var GNAME={1:'問1',2:'問2',3:'問3'};
-var VER='v16';
+var VER='v17';
 var KEY='gendaibun-hyoronngo-100.v1';
 
 /* ── 保存 ── */
@@ -656,7 +656,13 @@ $('qChips').addEventListener('click',function(e){
   $('qRead').focus();
 });
 $('qRead').addEventListener('input',function(){
-  if(S.graded){this.value=S.gradedTyped;return}
+  if(S.graded){
+    var v=this.value;
+    this.value=S.gradedTyped;
+    /* 採点後に空白が打ち込まれたら「正解にして次へ」 */
+    if(v.length>S.gradedTyped.length&&/[\s　]$/.test(v))markCorrectAndNext();
+    return;
+  }
   refreshGradeBtn();
 });
 function grade(shown){
@@ -723,6 +729,7 @@ $('nextBtn').addEventListener('click',next);
 var lastGo=0;
 /* 採点のあと空白キーを押したら、その問題を正解に直して次へ進む */
 function markCorrectAndNext(){
+  var t=Date.now(); if(t-lastGo<200)return; lastGo=t;
   if(!S.graded||!S.res.length){next();return}
   var r=S.res[S.res.length-1], w=r.d.w;
   if(!(r.kOK&&r.rOK!==false)){
@@ -738,17 +745,19 @@ function doGo(){
   var t=Date.now(); if(t-lastGo<150)return; lastGo=t;
   if(S.graded)next();else grade(false);
 }
+function isSpace(e){
+  return e.key===' '||e.key==='Spacebar'||e.code==='Space'||e.keyCode===32;
+}
 function onEnterDown(e){
+  /* 採点後の空白は「正解にして次へ」。iOS では空白も keyCode 229 で来るので
+     IME の判定より先に見る */
+  if(S.graded&&isSpace(e)){e.preventDefault();markCorrectAndNext();return}
   if(e.isComposing||e.keyCode===229)return;   /* 変換中は IME に任せる */
-  if(S.graded&&(e.key===' '||e.key==='Spacebar')){
-    e.preventDefault();
-    var t=Date.now(); if(t-lastGo<150)return; lastGo=t;
-    markCorrectAndNext(); return;
-  }
   if(e.key!=='Enter')return;
   e.preventDefault(); doGo();
 }
 function onEnterUp(e){
+  if(S.graded&&isSpace(e)){markCorrectAndNext();return}
   if(e.key!=='Enter'||e.isComposing)return;
   setTimeout(doGo,0);   /* 確定後の値で判定する */
 }
